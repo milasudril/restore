@@ -1,0 +1,9 @@
+[submodule "extproj/west"]
+	path = extproj/west
+	url = https://github.com/milasudril/west
+[submodule "extproj/jopp"]
+	path = extproj/jopp
+	url = https://github.com/milasudril/jopp
+[submodule "extproj/testfwk"]
+	path = extproj/testfwk
+	url = https://github.com/milasudril/testfwk

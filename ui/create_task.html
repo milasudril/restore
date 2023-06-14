@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<script src="make_form.js"></script>
+	<script>
+let dummy_response = JSON.parse("{\
+	\"fields\": {\
+		\"name\": {\
+			\"type\": \"restore:string\",\
+			\"layout\": \"short\",\
+			\"type_parameters\": {\
+				\"present_as\": \"body_text\"\
+			}\
+		},\
+		\"home_world\": {\
+			\"type\": \"planet\"\,\
+			\"layout\": \"short\"\
+		}\
+	},\
+	\"types\": {\
+		\"planet\": {\
+			\"fields\": {\
+				\"name\": {\
+					\"type\": \"restore:string\",\
+					\"layout\": \"short\",\
+					\"type_parameters\": {\
+						\"present_as\": \"body_text\"\
+					}\
+				},\
+				\"mass\": {\
+					\"type\": \"restore:float\",\
+					\"layout\": \"short\",\
+					\"type_parameters\": {\
+						\"input_type\": \"text\"\
+					}\
+				},\
+				\"radius\": {\
+					\"type\": \"restore:float\",\
+					\"layout\": \"short\",\
+					\"type_parameters\": {\
+						\"input_type\": \"text\"\
+					}\
+				}\
+			}\
+		}\
+	}\
+}");
+
+function create_inputs(schema)
+{
+	let parent_element = document.getElementById("my_table");
+	for(var field_name in schema.fields)
+	{
+		create_input(parent_element, field_name, schema.fields[field_name], schema);
+	}
+}
+
+	</script>
+	</head>
+	<body onload="create_inputs(dummy_response)">
+	<table id="my_table"></table>
+	</body>
+</html>
+
+

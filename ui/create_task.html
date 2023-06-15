@@ -7,27 +7,35 @@
 	<script>
 let record_description = JSON.parse("{\
 	\"description\": {\
-		\"type\": \"restore:string\",\
-		\"type_parameters\": {\
-			\"layout\": \"long\",\
-			\"present_as\": \"body_text\"\
+		\"type\": {\
+			\"id\": \"restore:string\",\
+			\"parameters\": {\
+				\"layout\": \"long\",\
+				\"present_as\": \"body_text\"\
+			}\
 		}\
 	},\
 	\"name\": {\
-		\"type\": \"restore:string\",\
-		\"type_parameters\": {\
-			\"layout\": \"short\",\
-			\"present_as\": \"body_text\"\
-		}\n\
-	},\n\
+		\"type\": {\
+			\"id\": \"restore:string\",\
+			\"parameters\": {\
+				\"layout\": \"short\",\
+				\"present_as\": \"body_text\"\
+			}\
+		}\
+	},\
 	\"length\": {\
-		\"type\": \"float\",\
-		\"type_parameters\": {\
-			\"input_type\": \"text\"\
-		}\n\
-	},\n\
+		\"type\": {\
+			\"id\": \"restore:float\",\
+			\"parameters\": {\
+				\"input_type\": \"text\"\
+			}\
+		}\
+	},\
 	\"home_world\": {\
-		\"type\": \"planet\"\
+		\"type\": {\
+			\"id\": \"planet\"\
+		}\
 	}\
 }");
 
@@ -35,29 +43,37 @@ let types = JSON.parse("{\
 	\"planet\": {\
 		\"fields\": {\
 			\"name\": {\
-				\"type\": \"restore:string\",\
-				\"type_parameters\": {\
-					\"layout\": \"short\",\
-					\"present_as\": \"body_text\"\
+				\"type\": {\
+					\"id\": \"restore:string\",\
+					\"parameters\": {\
+						\"layout\": \"short\",\
+						\"present_as\": \"body_text\"\
+					}\
 				}\
 			},\
 			\"description\": {\
-				\"type\": \"restore:string\",\
-				\"type_parameters\": {\
-					\"layout\": \"long\",\
-					\"present_as\": \"body_text\"\
+				\"type\": {\
+					\"id\": \"restore:string\",\
+					\"parameters\": {\
+						\"layout\": \"long\",\
+						\"present_as\": \"body_text\"\
+					}\
 				}\
 			},\
 			\"mass\": {\
-				\"type\": \"restore:float\",\
-				\"type_parameters\": {\
-					\"input_type\": \"text\"\
+				\"type\": {\
+					\"id\": \"restore:float\",\
+					\"parameters\": {\
+						\"input_type\": \"text\"\
+					}\
 				}\
 			},\
 			\"radius\": {\
-				\"type\": \"restore:float\",\
-				\"type_parameters\": {\
-					\"input_type\": \"text\"\
+				\"type\": {\
+					\"id\": \"restore:float\",\
+					\"parameters\": {\
+						\"input_type\": \"text\"\
+					}\
 				}\
 			}\
 		}\

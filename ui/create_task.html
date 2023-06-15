@@ -3,48 +3,64 @@
 	<head>
 	<script src="make_form.js"></script>
 	<script>
-let dummy_response = JSON.parse("{\
-	\"fields\": {\
-		\"name\": {\
-			\"type\": \"restore:string\",\
-			\"layout\": \"short\",\
-			\"type_parameters\": {\
-				\"present_as\": \"body_text\"\
-			}\
-		},\
-		\"home_world\": {\
-			\"type\": \"planet\"\,\
-			\"layout\": \"short\"\
+let record_description = JSON.parse("{\
+	\"description\": {\
+		\"type\": \"restore:string\",\
+		\"type_parameters\": {\
+			\"layout\": \"long\",\
+			\"present_as\": \"body_text\"\
 		}\
 	},\
-	\"types\": {\
-		\"planet\": {\
-			\"fields\": {\
-				\"name\": {\
-					\"type\": \"restore:string\",\
+	\"name\": {\
+		\"type\": \"restore:string\",\
+		\"type_parameters\": {\
+			\"layout\": \"short\",\
+			\"present_as\": \"body_text\"\
+		}\n\
+	},\n\
+	\"length\": {\
+		\"type\": \"float\",\
+		\"type_parameters\": {\
+			\"input_type\": \"text\"\
+		}\n\
+	},\n\
+	\"home_world\": {\
+		\"type\": \"planet\"\
+	}\
+}");
+
+let types = JSON.parse("{\
+	\"planet\": {\
+		\"fields\": {\
+			\"name\": {\
+				\"type\": \"restore:string\",\
+				\"type_parameters\": {\
 					\"layout\": \"short\",\
-					\"type_parameters\": {\
-						\"present_as\": \"body_text\"\
-					}\
-				},\
-				\"mass\": {\
-					\"type\": \"restore:float\",\
-					\"layout\": \"short\",\
-					\"type_parameters\": {\
-						\"input_type\": \"text\"\
-					}\
-				},\
-				\"radius\": {\
-					\"type\": \"restore:float\",\
-					\"layout\": \"short\",\
-					\"type_parameters\": {\
-						\"input_type\": \"text\"\
-					}\
+					\"present_as\": \"body_text\"\
+				}\
+			},\
+			\"description\": {\
+				\"type\": \"restore:string\",\
+				\"type_parameters\": {\
+					\"layout\": \"long\",\
+					\"present_as\": \"body_text\"\
+				}\
+			},\
+			\"mass\": {\
+				\"type\": \"restore:float\",\
+				\"type_parameters\": {\
+					\"input_type\": \"text\"\
+				}\
+			},\
+			\"radius\": {\
+				\"type\": \"restore:float\",\
+				\"type_parameters\": {\
+					\"input_type\": \"text\"\
 				}\
 			}\
 		}\
 	}\
-}");
+}")
 
 function create_inputs(schema)
 {
@@ -57,7 +73,7 @@ function create_inputs(schema)
 
 	</script>
 	</head>
-	<body onload="create_inputs(dummy_response)">
+	<body>
 	<table id="my_table"></table>
 	</body>
 </html>

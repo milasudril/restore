@@ -2,11 +2,16 @@
 
 let strcmp = new Intl.Collator(undefined, {numeric:true, sensitivity: "base"}).compare;
 
+function field_type_is_builtin(typeid)
+{
+	return typeid.split(":")[0] === "restore";
+}
+
 function type_is_long(type)
 {
 	let name_split = type.id.split(":");
 
-	if(name_split[0] === "restore")
+	if(field_type_is_builtin(type.id))
 	{
 		if(type.parameters.layout)
 		{
@@ -55,6 +60,11 @@ function generate_form(element_factory, output_element, record_description, type
 		let header_content = element_factory.createTextNode(fields[k].first);
 		header.appendChild(header_content);
 		row.appendChild(header);
+
+		let input_field = element_factory.createElement("td");
+	//	field_record_description = get_record_description(fields[k].second.type)
+
+		row.appendChild(input_field);
 
 		table.appendChild(row);
 	}

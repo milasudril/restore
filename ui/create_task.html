@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
+	<meta charset="UTF-8">
+	<title>Create task</title>
 	<script src="make_form.js"></script>
 	<script>
 let record_description = JSON.parse("{\
@@ -70,11 +72,20 @@ function create_inputs(schema)
 		create_input(parent_element, field_name, schema.fields[field_name], schema);
 	}
 }
-
-	</script>
+</script>
 	</head>
 	<body>
-	<table id="my_table"></table>
+	<form method="POST" action="/actions/create_task">
+		<section id="paraminputs">
+			<h1>Task parameters</h1>
+		</section>
+		<nav id="formactions">
+			<ul>
+				<li><input type="reset"></li>
+				<li><input type="submit"></li>
+			</ul>
+		</nav>
+	</form>
 	</body>
 </html>
 

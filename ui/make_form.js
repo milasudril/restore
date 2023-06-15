@@ -46,19 +46,29 @@ function generate_form(element_factory, output_element, record_description, type
 	if(last_short === -1)
 	{ last_short = fields.length; }
 
+	let table = element_factory.createElement("table");
 	for(let k = 0; k != last_short; ++k)
 	{
-		let container = element_factory.createElement("p");
-		let container_content = element_factory.createTextNode(type_is_long(fields[k].second.type) + " " + fields[k].first);
-		container.appendChild(container_content);
-		output_element.appendChild(container);
+		let row = element_factory.createElement("tr");
+
+		let header = element_factory.createElement("th");
+		let header_content = element_factory.createTextNode(fields[k].first);
+		header.appendChild(header_content);
+		row.appendChild(header);
+
+		table.appendChild(row);
 	}
+	output_element.appendChild(table);
 
 	for(let k = last_short; k != fields.length; ++k)
 	{
-		let container = element_factory.createElement("p");
-		let container_content = element_factory.createTextNode(type_is_long(fields[k].second.type) + " " + fields[k].first);
-		container.appendChild(container_content);
+		let container = element_factory.createElement("section");
+
+		let container_title = element_factory.createElement("h1");
+		let container_title_content = element_factory.createTextNode(fields[k].first);
+		container_title.appendChild(container_title_content);
+		container.appendChild(container_title);
+
 		output_element.appendChild(container);
 	}
 }

@@ -5,7 +5,6 @@ let strcmp = new Intl.Collator(undefined, {numeric:true, sensitivity: "base"}).c
 function type_is_long(type)
 {
 	let name_split = type.id.split(":");
-	console.log(name_split[0])
 
 	if(name_split[0] === "restore")
 	{
@@ -41,10 +40,24 @@ function generate_form(element_factory, output_element, record_description, type
 		{ return strcmp(a.first, b.first); }
 	});
 
-	for(let item in fields)
+	let last_short = fields.findIndex(function(element){
+		return type_is_long(element.second.type) === 1;
+	});
+	if(last_short === -1)
+	{ last_short = fields.length; }
+
+	for(let k = 0; k != last_short; ++k)
 	{
 		let container = element_factory.createElement("p");
-		let container_content = element_factory.createTextNode(type_is_long(fields[item].second.type) + " " + fields[item].first);
+		let container_content = element_factory.createTextNode(type_is_long(fields[k].second.type) + " " + fields[k].first);
+		container.appendChild(container_content);
+		output_element.appendChild(container);
+	}
+
+	for(let k = last_short; k != fields.length; ++k)
+	{
+		let container = element_factory.createElement("p");
+		let container_content = element_factory.createTextNode(type_is_long(fields[k].second.type) + " " + fields[k].first);
 		container.appendChild(container_content);
 		output_element.appendChild(container);
 	}

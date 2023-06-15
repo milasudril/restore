@@ -64,17 +64,9 @@ let types = JSON.parse("{\
 	}\
 }")
 
-function create_inputs(schema)
-{
-	let parent_element = document.getElementById("my_table");
-	for(var field_name in schema.fields)
-	{
-		create_input(parent_element, field_name, schema.fields[field_name], schema);
-	}
-}
 </script>
 	</head>
-	<body>
+	<body onload="generate_form(document, paraminputs, record_description, types)">
 	<form method="POST" action="/actions/create_task">
 		<section id="paraminputs">
 			<h1>Task parameters</h1>

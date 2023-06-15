@@ -25,6 +25,14 @@ function type_is_long(type)
 	return 1;
 }
 
+function create_text_area(element_factory)
+{
+	let element = element_factory.createElement("textarea");
+	element.setAttribute("rows", "24");
+	element.setAttribute("cols", "80");
+	return element;
+}
+
 function create_builtin_input_field(element_factory, field)
 {
 	let typeid_split = field.second.type.id.split(":");
@@ -35,11 +43,25 @@ function create_builtin_input_field(element_factory, field)
 	{ throw new Error("Type is not builtin"); }
 
 	let typeid = typeid_split[1];
-	let element = element_factory.createElement("input");
-	element.setAttribute("name", field.first);
-	element.setAttribute("value-type", typeid);
 
-	return element;
+	if(typeid === "string")
+	{
+		let element = type_is_long(field.second.type)?
+			create_text_area(element_factory):
+			element_factory.createElement("input");
+
+		element.setAttribute("name", field.first);
+		element.setAttribute("value-type", typeid);
+
+		return element;
+	}
+	else
+	{
+		let element = element_factory.createElement("input");
+		element.setAttribute("name", field.first);
+		element.setAttribute("value-type", typeid);
+		return element;
+	}
 }
 
 function generate_form(element_factory, output_element, record_description, types)
@@ -82,7 +104,8 @@ function generate_form(element_factory, output_element, record_description, type
 		if(field_type_is_builtin(fields[k].second.type.id))
 		{ input_field.appendChild(create_builtin_input_field(element_factory, fields[k])); }
 
-	//	field_record_description = get_record_description(fields[k].second.type)
+		// TODO: Implement support for custom types
+		// field_record_description = get_record_description(fields[k].second.type)
 
 		row.appendChild(input_field);
 
@@ -98,6 +121,12 @@ function generate_form(element_factory, output_element, record_description, type
 		let container_title_content = element_factory.createTextNode(fields[k].first);
 		container_title.appendChild(container_title_content);
 		container.appendChild(container_title);
+
+		if(field_type_is_builtin(fields[k].second.type.id))
+		{ container.appendChild(create_builtin_input_field(element_factory, fields[k])); }
+
+		// TODO: Implement support for custom types
+		// field_record_description = get_record_description(fields[k].second.type)
 
 		output_element.appendChild(container);
 	}

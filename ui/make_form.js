@@ -25,6 +25,23 @@ function type_is_long(type)
 	return 1;
 }
 
+function create_builtin_input_field(element_factory, field)
+{
+	let typeid_split = field.second.type.id.split(":");
+	if(typeid_split[0] !== "restore")
+	{ throw new Error("Type is not builtin"); }
+
+	if(typeid_split.length !== 2)
+	{ throw new Error("Type is not builtin"); }
+
+	let typeid = typeid_split[1];
+	let element = element_factory.createElement("input");
+	element.setAttribute("name", field.first);
+	element.setAttribute("value-type", typeid);
+
+	return element;
+}
+
 function generate_form(element_factory, output_element, record_description, types)
 {
 	let fields = new Array();
@@ -62,6 +79,9 @@ function generate_form(element_factory, output_element, record_description, type
 		row.appendChild(header);
 
 		let input_field = element_factory.createElement("td");
+		if(field_type_is_builtin(fields[k].second.type.id))
+		{ input_field.appendChild(create_builtin_input_field(element_factory, fields[k])); }
+
 	//	field_record_description = get_record_description(fields[k].second.type)
 
 		row.appendChild(input_field);

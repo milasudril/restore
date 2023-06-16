@@ -9,20 +9,9 @@ function field_type_is_builtin(typeid)
 
 function type_is_long(type)
 {
-	let name_split = type.id.split(":");
-
-	if(field_type_is_builtin(type.id))
-	{
-		if(type.parameters.layout)
-		{
-			if(type.parameters.layout === "long")
-			{ return 1;}
-		}
-		return 0;
-	}
-
-	// For now custom types are always considered as long
-	return 1;
+	if(type.layout === "long")
+	{ return 1;}
+	return 0;
 }
 
 function create_text_area(element_factory)

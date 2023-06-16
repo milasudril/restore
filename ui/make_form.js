@@ -103,9 +103,8 @@ function generate_form(element_factory, output_element, record_description, type
 		let input_field = element_factory.createElement("td");
 		if(field_type_is_builtin(fields[k].second.type.id))
 		{ input_field.appendChild(create_builtin_input_field(element_factory, fields[k])); }
-
-		// TODO: Implement support for custom types
-		// field_record_description = get_record_description(fields[k].second.type)
+		else
+		{ generate_form(element_factory, input_field, types[fields[k].second.type.id].fields, types); }
 
 		row.appendChild(input_field);
 
@@ -124,9 +123,8 @@ function generate_form(element_factory, output_element, record_description, type
 
 		if(field_type_is_builtin(fields[k].second.type.id))
 		{ container.appendChild(create_builtin_input_field(element_factory, fields[k])); }
-
-		// TODO: Implement support for custom types
-		// field_record_description = get_record_description(fields[k].second.type)
+		else
+		{ generate_form(element_factory, container, types[fields[k].second.type.id].fields, types); }
 
 		output_element.appendChild(container);
 	}

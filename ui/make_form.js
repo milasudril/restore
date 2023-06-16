@@ -17,8 +17,7 @@ function type_is_long(type)
 function create_text_area(element_factory)
 {
 	let element = element_factory.createElement("textarea");
-	element.setAttribute("rows", "24");
-	element.setAttribute("cols", "80");
+	element.setAttribute("rows", "8");
 	return element;
 }
 

@@ -37,16 +37,12 @@ function create_builtin_input_field(element_factory, field)
 		let element = type_is_long(field.second.type)?
 			create_text_area(element_factory):
 			element_factory.createElement("input");
-
-		element.setAttribute("name", field.first);
 		element.setAttribute("value-type", typeid);
-
 		return element;
 	}
 	else
 	{
 		let element = element_factory.createElement("input");
-		element.setAttribute("name", field.first);
 		element.setAttribute("value-type", typeid);
 		return element;
 	}
@@ -94,8 +90,8 @@ function generate_form(element_factory, output_element, record_description, type
 		else
 		{ generate_form(element_factory, input_field, types[fields[k].second.type.id].fields, types); }
 
+		input_field.setAttribute("field-name", fields[k].first);
 		row.appendChild(input_field);
-
 		table.appendChild(row);
 	}
 	output_element.appendChild(table);
@@ -114,6 +110,7 @@ function generate_form(element_factory, output_element, record_description, type
 		else
 		{ generate_form(element_factory, container, types[fields[k].second.type.id].fields, types); }
 
+		container.setAttribute("field-name", fields[k].first);
 		output_element.appendChild(container);
 	}
 }

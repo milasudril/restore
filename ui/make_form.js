@@ -32,7 +32,7 @@ function create_input_field_atom(element_factory, type)
 		let element = type.input_size === "long"?
 			create_text_area(element_factory):
 			element_factory.createElement("input");
-		element.setAttribute("value-type", type.name);
+		element.setAttribute("field-type-name", type.name);
 		return element;
 	}
 	else
@@ -40,13 +40,13 @@ function create_input_field_atom(element_factory, type)
 	{
 		let element = element_factory.createElement("input");
 		element.setAttribute("type", "checkbox");
-		element.setAttribute("value-type", type.name);
+		element.setAttribute("field-type-name", type.name);
 		return element;
 	}
 	else
 	{
 		let element = element_factory.createElement("input");
-		element.setAttribute("value-type", type.name);
+		element.setAttribute("field-type-name", type.name);
 		return element;
 	}
 }
@@ -54,7 +54,7 @@ function create_input_field_atom(element_factory, type)
 function create_input_field_enum(element_factory, type)
 {
 	let element = element_factory.createElement("select")
-	element.setAttribute("value-type", "string");
+	element.setAttribute("field-type-name", "string");
 
 	for(let item in type.allowed_values)
 	{

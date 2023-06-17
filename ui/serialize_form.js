@@ -1,5 +1,19 @@
 "use strict";
 
+function serialize_value(input_field, type_name)
+{
+	if(type_name === "string")
+	{ return input_field.value; }
+
+	if(type_name === "number")
+	{ return parseFloat(input_field.value); }
+
+	if(type_name === "boolean")
+	{ return input_field.checked; }
+
+	return input_field.value;
+}
+
 function serialize_form(subform, output_object)
 {
 	for(let item in subform.children)
@@ -24,7 +38,7 @@ function serialize_form(subform, output_object)
 						serialize_form(field, output_object[field_name]);
 					}
 					else
-					{ output_object[field_name] = field.children[0].value; }
+					{ output_object[field_name] = serialize_value(field.children[0], field_type_name); }
 				}
 			}
 		}
@@ -43,7 +57,7 @@ function serialize_form(subform, output_object)
 				serialize_form(field, output_object[field_name]);
 			}
 			else
-			{ output_object[field_name] = field.children[1].value; }
+			{ output_object[field_name] = serialize_value(field.children[1], field_type_name); }
 		}
 	}
 }

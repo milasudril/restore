@@ -125,6 +125,7 @@ function generate_form(element_factory, output_element, record_description, type
 		let row = element_factory.createElement("tr");
 
 		let header = element_factory.createElement("th");
+		header.setAttribute("class", "row-header");
 		let header_content = element_factory.createTextNode(fields[k].first);
 		header.appendChild(header_content);
 		row.appendChild(header);

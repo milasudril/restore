@@ -1,7 +1,5 @@
 "use strict";
 
-let strcmp = new Intl.Collator(undefined, {numeric:true, sensitivity: "base"}).compare;
-
 function field_type_is_builtin(type)
 {
 	return type.category === "atom";
@@ -114,11 +112,9 @@ function generate_form(element_factory, output_element, record_description, type
 		{ return strcmp(a.first, b.first); }
 	});
 
-	let last_inline = fields.findIndex(function(element){
+	let last_inline = find_if(fields, function(element){
 		return show_as_paragraph(element.second) === 1;
 	});
-	if(last_inline === -1)
-	{ last_inline = fields.length; }
 
 	let table = element_factory.createElement("table");
 	for(let k = 0; k != last_inline; ++k)

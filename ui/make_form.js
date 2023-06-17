@@ -7,11 +7,15 @@ function field_type_is_builtin(typeid)
 	return typeid.split(":")[0] === "restore";
 }
 
-function type_is_long(type)
+function show_as_paragraph(field)
 {
-	if(type.layout === "long")
+	if(field.display === "block")
 	{ return 1;}
-	return 0;
+	else
+	if(field.display === "inline")
+	{ return 0; }
+
+	throw new Error("Invalid display type");
 }
 
 function create_text_area(element_factory)
@@ -34,7 +38,7 @@ function create_builtin_input_field(element_factory, field)
 
 	if(typeid === "string")
 	{
-		let element = type_is_long(field.second.type)?
+		let element = field.second.type.layout === "long"?
 			create_text_area(element_factory):
 			element_factory.createElement("input");
 		element.setAttribute("value-type", typeid);
@@ -55,27 +59,27 @@ function generate_form(element_factory, output_element, record_description, type
 	{ fields.push({"first": item, "second": record_description[item]}); }
 
 	fields.sort(function(a, b){
-		let a_is_short = type_is_long(a.second.type);
-		let b_is_short = type_is_long(b.second.type);
+		let a_is_paragraph = show_as_paragraph(a.second);
+		let b_is_paragraph = show_as_paragraph(b.second);
 
-		if(a_is_short < b_is_short)
+		if(a_is_paragraph < b_is_paragraph)
 		{ return -1; }
 
-		if(a_is_short > b_is_short)
+		if(a_is_paragraph > b_is_paragraph)
 		{ return 1; }
 
-		if(a_is_short === b_is_short)
+		if(a_is_paragraph === b_is_paragraph)
 		{ return strcmp(a.first, b.first); }
 	});
 
-	let last_short = fields.findIndex(function(element){
-		return type_is_long(element.second.type) === 1;
+	let last_inline = fields.findIndex(function(element){
+		return show_as_paragraph(element.second) === 1;
 	});
-	if(last_short === -1)
-	{ last_short = fields.length; }
+	if(last_inline === -1)
+	{ last_inline = fields.length; }
 
 	let table = element_factory.createElement("table");
-	for(let k = 0; k != last_short; ++k)
+	for(let k = 0; k != last_inline; ++k)
 	{
 		let row = element_factory.createElement("tr");
 
@@ -96,7 +100,7 @@ function generate_form(element_factory, output_element, record_description, type
 	}
 	output_element.appendChild(table);
 
-	for(let k = last_short; k != fields.length; ++k)
+	for(let k = last_inline; k != fields.length; ++k)
 	{
 		let container = element_factory.createElement("section");
 

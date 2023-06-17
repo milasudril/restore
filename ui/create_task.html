@@ -10,26 +10,29 @@
 	<script>
 let record_description = JSON.parse("{\
 	\"description\": {\
+		\"display\": \"block\",\
 		\"type\": {\
 			\"id\": \"restore:string\",\
 			\"layout\": \"long\"\
 		}\
 	},\
 	\"name\": {\
+		\"display\": \"inline\",\
 		\"type\": {\
 			\"id\": \"restore:string\",\
 			\"layout\": \"short\"\
 		}\
 	},\
 	\"length\": {\
+		\"display\": \"inline\",\
 		\"type\": {\
 			\"id\": \"restore:number\"\
 		}\
 	},\
 	\"home_world\": {\
+		\"display\": \"block\",\
 		\"type\": {\
-			\"id\": \"planet\",\
-			\"layout\": \"long\"\
+			\"id\": \"planet\"\
 		}\
 	}\
 }");
@@ -38,23 +41,27 @@ let types = JSON.parse("{\
 	\"planet\": {\
 		\"fields\": {\
 			\"name\": {\
+				\"display\": \"inline\",\
 				\"type\": {\
 					\"id\": \"restore:string\",\
 					\"layout\": \"short\"\
 				}\
 			},\
 			\"description\": {\
+				\"display\": \"block\",\
 				\"type\": {\
 					\"id\": \"restore:string\",\
 					\"layout\": \"long\"\
 				}\
 			},\
 			\"mass\": {\
+				\"display\": \"inline\",\
 				\"type\": {\
 					\"id\": \"restore:number\"\
 				}\
 			},\
 			\"radius\": {\
+				\"display\": \"inline\",\
 				\"type\": {\
 					\"id\": \"restore:number\"\
 				}\

@@ -9,6 +9,7 @@ th.row-header{text-align: left}
 	</style>
 	<script src="utils.js"></script>
 	<script src="make_form.js"></script>
+	<script src="serialize_form.js"></script>
 	<script>
 let record_description = JSON.parse("{\
 	\"description\": {\
@@ -107,11 +108,22 @@ let types = JSON.parse("{\
 		}\
 	}\
 }")
-
 </script>
+
+<script>
+function submit_form(event, subform)
+{
+	event.preventDefault();
+	let output_object = {};
+	serialize_form(subform, output_object);
+	console.log(output_object);
+	return false;
+}
+</script>
+
 	</head>
 	<body onload="generate_form(document, paraminputs, record_description, types)">
-	<form method="POST" action="/actions/create_task">
+	<form onsubmit="return submit_form(event, paraminputs);">
 		<section id="paraminputs">
 			<h1>Task parameters</h1>
 		</section>

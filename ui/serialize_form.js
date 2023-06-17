@@ -8,25 +8,42 @@ function serialize_form(subform, output_object)
 		let tag_name = child.tagName;
 		if(tag_name === "TABLE" || tag_name === "table")
 		{
-			let rows = child.children[0].children;  // Dive into generated tbody
-			for(let row in rows)
+			for(let row in child.rows)
 			{
-				let cells = rows[row].children;
+				let cells = child.rows[row].cells;
 				if(cells)
 				{
-					let item = cells[1];
-					let field_name = item.attributes["field-name"].value;
-					let input_field = item.children[0];
-					let field_type = input_field.attributes["value-type"].value;
-					let field_value = item.children[0].value;
-					output_object[field_name] = field_value;
+					let field = cells[1];
+					let field_name = field.getAttribute("field-name");
+					let field_type_name = field.getAttribute("field-type-name");
+					let field_type_category = field.getAttribute("field-type-category");
+
+					if(field_type_category === "composite")
+					{
+						output_object[field_name] = {};
+						serialize_form(field, output_object[field_name]);
+					}
+					else
+					{ output_object[field_name] = field.children[0].value; }
 				}
 			}
 		}
 		else
 		if(tag_name === "SECTION" || tag_name === "section")
 		{
-//			console.log("section");
+			let field = child;
+
+			let field_name = field.getAttribute("field-name");
+			let field_type_name = field.getAttribute("field-type-name");
+			let field_type_category = field.getAttribute("field-type-category");
+
+			if(field_type_category === "composite")
+			{
+				output_object[field_name] = {};
+				serialize_form(field, output_object[field_name]);
+			}
+			else
+			{ output_object[field_name] = field.children[1].value; }
 		}
 	}
 }

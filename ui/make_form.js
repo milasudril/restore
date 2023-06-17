@@ -36,6 +36,14 @@ function create_input_field_atom(element_factory, type)
 		return element;
 	}
 	else
+	if(type.name === "boolean")
+	{
+		let element = element_factory.createElement("input");
+		element.setAttribute("type", "checkbox");
+		element.setAttribute("value-type", type.name);
+		return element;
+	}
+	else
 	{
 		let element = element_factory.createElement("input");
 		element.setAttribute("value-type", type.name);

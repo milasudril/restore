@@ -29,7 +29,7 @@ function create_input_field_atom(element_factory, type)
 {
 	if(type.name === "string")
 	{
-		let element = type.layout === "long"?
+		let element = type.input_size === "long"?
 			create_text_area(element_factory):
 			element_factory.createElement("input");
 		element.setAttribute("value-type", type.name);

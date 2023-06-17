@@ -15,7 +15,7 @@ function show_as_paragraph(field)
 	if(field.display === "inline")
 	{ return 0; }
 
-	throw new Error("Invalid display type");
+	throw new Error("Invalid display mode `" + field.display + "`");
 }
 
 function create_text_area(element_factory)
@@ -41,6 +41,23 @@ function create_builtin_input_field(element_factory, type)
 		element.setAttribute("value-type", type.name);
 		return element;
 	}
+}
+
+function create_input_field(element_factory, parent_element, type, types)
+{
+	if(type.category === "atom")
+	{
+		parent_element.appendChild(create_builtin_input_field(element_factory, type));
+		return;
+	}
+
+	if(type.category === "composite")
+	{
+		generate_form(element_factory, parent_element, types[type.name].fields, types);
+		return;
+	}
+
+	throw Error("Unsupported type category `" + type.category + "`");
 }
 
 function generate_form(element_factory, output_element, record_description, types)
@@ -79,34 +96,28 @@ function generate_form(element_factory, output_element, record_description, type
 		header.appendChild(header_content);
 		row.appendChild(header);
 
-		let input_field = element_factory.createElement("td");
+		let input_field_container = element_factory.createElement("td");
 
-		if(field_type_is_builtin(fields[k].second.type))
-		{ input_field.appendChild(create_builtin_input_field(element_factory, fields[k].second.type)); }
-		else
-		{ generate_form(element_factory, input_field, types[fields[k].second.type.name].fields, types); }
+		create_input_field(element_factory, input_field_container, fields[k].second.type, types);
 
-		input_field.setAttribute("field-name", fields[k].first);
-		row.appendChild(input_field);
+		input_field_container.setAttribute("field-name", fields[k].first);
+		row.appendChild(input_field_container);
 		table.appendChild(row);
 	}
 	output_element.appendChild(table);
 
 	for(let k = last_inline; k != fields.length; ++k)
 	{
-		let container = element_factory.createElement("section");
+		let input_field_container = element_factory.createElement("section");
 
 		let container_title = element_factory.createElement("h1");
 		let container_title_content = element_factory.createTextNode(fields[k].first);
 		container_title.appendChild(container_title_content);
-		container.appendChild(container_title);
+		input_field_container.appendChild(container_title);
 
-		if(field_type_is_builtin(fields[k].second.type))
-		{ container.appendChild(create_builtin_input_field(element_factory, fields[k].second.type)); }
-		else
-		{ generate_form(element_factory, container, types[fields[k].second.type.name].fields, types); }
+		create_input_field(element_factory, input_field_container, fields[k].second.type, types);
 
-		container.setAttribute("field-name", fields[k].first);
-		output_element.appendChild(container);
+		input_field_container.setAttribute("field-name", fields[k].first);
+		output_element.appendChild(input_field_container);
 	}
 }

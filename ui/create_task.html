@@ -74,8 +74,23 @@ let types = JSON.parse("{\
 						\"category\":\"atom\",\
 						\"name\": \"number\"\
 					}\
+				},\
+				\"type\": {\
+					\"display\": \"inline\",\
+					\"type\": {\
+						\"name\": \"planet_type\",\
+						\"category\": \"enum\"\
+					}\
 				}\
 			}\
+		}\
+	},\
+	\"enum\": {\
+		\"planet_type\": {\
+			\"allowed_values\": [\
+				\"rocky\",\
+				\"gas_giant\"\
+			]\
 		}\
 	}\
 }")

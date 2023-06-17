@@ -25,7 +25,7 @@ function create_text_area(element_factory)
 	return element;
 }
 
-function create_builtin_input_field(element_factory, type)
+function create_input_field_atom(element_factory, type)
 {
 	if(type.name === "string")
 	{
@@ -43,17 +43,40 @@ function create_builtin_input_field(element_factory, type)
 	}
 }
 
+function create_input_field_enum(element_factory, type)
+{
+	let element = element_factory.createElement("select")
+	element.setAttribute("value-type", "string");
+
+	for(let item in type.allowed_values)
+	{
+		let option = element_factory.createElement("option");
+		let entry = element_factory.createTextNode(type.allowed_values[item]);
+		option.appendChild(entry);
+		element.appendChild(option);
+	}
+
+	return element;
+}
+
+
 function create_input_field(element_factory, parent_element, type, types)
 {
 	if(type.category === "atom")
 	{
-		parent_element.appendChild(create_builtin_input_field(element_factory, type));
+		parent_element.appendChild(create_input_field_atom(element_factory, type));
 		return;
 	}
 
 	if(type.category === "composite")
 	{
 		generate_form(element_factory, parent_element, types.composite[type.name].fields, types);
+		return;
+	}
+
+	if(type.category === "enum")
+	{
+		parent_element.appendChild(create_input_field_enum(element_factory, types.enum[type.name]));
 		return;
 	}
 

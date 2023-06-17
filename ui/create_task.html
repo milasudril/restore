@@ -42,36 +42,38 @@ let record_description = JSON.parse("{\
 }");
 
 let types = JSON.parse("{\
-	\"planet\": {\
-		\"fields\": {\
-			\"name\": {\
-				\"display\": \"inline\",\
-				\"type\": {\
-					\"category\":\"atom\",\
-					\"name\": \"string\",\
-					\"layout\": \"short\"\
-				}\
-			},\
-			\"description\": {\
-				\"display\": \"block\",\
-				\"type\": {\
-					\"category\":\"atom\",\
-					\"name\": \"string\",\
-					\"layout\": \"long\"\
-				}\
-			},\
-			\"mass\": {\
-				\"display\": \"inline\",\
-				\"type\": {\
-					\"category\":\"atom\",\
-					\"name\": \"number\"\
-				}\
-			},\
-			\"radius\": {\
-				\"display\": \"inline\",\
-				\"type\": {\
-					\"category\":\"atom\",\
-					\"name\": \"number\"\
+	\"composite\": {\
+		\"planet\": {\
+			\"fields\": {\
+				\"name\": {\
+					\"display\": \"inline\",\
+					\"type\": {\
+						\"category\":\"atom\",\
+						\"name\": \"string\",\
+						\"layout\": \"short\"\
+					}\
+				},\
+				\"description\": {\
+					\"display\": \"block\",\
+					\"type\": {\
+						\"category\":\"atom\",\
+						\"name\": \"string\",\
+						\"layout\": \"long\"\
+					}\
+				},\
+				\"mass\": {\
+					\"display\": \"inline\",\
+					\"type\": {\
+						\"category\":\"atom\",\
+						\"name\": \"number\"\
+					}\
+				},\
+				\"radius\": {\
+					\"display\": \"inline\",\
+					\"type\": {\
+						\"category\":\"atom\",\
+						\"name\": \"number\"\
+					}\
 				}\
 			}\
 		}\

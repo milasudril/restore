@@ -53,7 +53,7 @@ function create_input_field(element_factory, parent_element, type, types)
 
 	if(type.category === "composite")
 	{
-		generate_form(element_factory, parent_element, types[type.name].fields, types);
+		generate_form(element_factory, parent_element, types.composite[type.name].fields, types);
 		return;
 	}
 

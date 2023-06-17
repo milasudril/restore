@@ -116,7 +116,7 @@ function submit_form(event, subform)
 	event.preventDefault();
 	let output_object = {};
 	serialize_form(subform, output_object);
-	console.log(output_object);
+	console.log(JSON.stringify(output_object));
 	return false;
 }
 </script>

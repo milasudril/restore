@@ -87,10 +87,14 @@ let types = JSON.parse("{\
 	},\
 	\"enum\": {\
 		\"planet_type\": {\
-			\"allowed_values\": [\
-				\"rocky\",\
-				\"gas_giant\"\
-			]\
+			\"allowed_values\": {\
+				\"rocky\" : {\
+					\"display_name\": \"Rocky\"\
+				},\
+				\"gas_giant\" : {\
+					\"display_name\": \"Gas giant\"\
+				}\
+			}\
 		}\
 	}\
 }")

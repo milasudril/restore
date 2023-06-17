@@ -51,7 +51,9 @@ function create_input_field_enum(element_factory, type)
 	for(let item in type.allowed_values)
 	{
 		let option = element_factory.createElement("option");
-		let entry = element_factory.createTextNode(type.allowed_values[item]);
+		option.setAttribute("value", item);
+		let entry = element_factory.createTextNode(type.allowed_values[item].display_name?
+			type.allowed_values[item].display_name : item);
 		option.appendChild(entry);
 		element.appendChild(option);
 	}

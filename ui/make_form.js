@@ -2,9 +2,9 @@
 
 let strcmp = new Intl.Collator(undefined, {numeric:true, sensitivity: "base"}).compare;
 
-function field_type_is_builtin(typeid)
+function field_type_is_builtin(type)
 {
-	return typeid.split(":")[0] === "restore";
+	return type.category === "atom";
 }
 
 function show_as_paragraph(field)
@@ -25,29 +25,20 @@ function create_text_area(element_factory)
 	return element;
 }
 
-function create_builtin_input_field(element_factory, field)
+function create_builtin_input_field(element_factory, type)
 {
-	let typeid_split = field.second.type.id.split(":");
-	if(typeid_split[0] !== "restore")
-	{ throw new Error("Type is not builtin"); }
-
-	if(typeid_split.length !== 2)
-	{ throw new Error("Type is not builtin"); }
-
-	let typeid = typeid_split[1];
-
-	if(typeid === "string")
+	if(type.name === "string")
 	{
-		let element = field.second.type.layout === "long"?
+		let element = type.layout === "long"?
 			create_text_area(element_factory):
 			element_factory.createElement("input");
-		element.setAttribute("value-type", typeid);
+		element.setAttribute("value-type", type.name);
 		return element;
 	}
 	else
 	{
 		let element = element_factory.createElement("input");
-		element.setAttribute("value-type", typeid);
+		element.setAttribute("value-type", type.name);
 		return element;
 	}
 }
@@ -89,10 +80,11 @@ function generate_form(element_factory, output_element, record_description, type
 		row.appendChild(header);
 
 		let input_field = element_factory.createElement("td");
-		if(field_type_is_builtin(fields[k].second.type.id))
-		{ input_field.appendChild(create_builtin_input_field(element_factory, fields[k])); }
+
+		if(field_type_is_builtin(fields[k].second.type))
+		{ input_field.appendChild(create_builtin_input_field(element_factory, fields[k].second.type)); }
 		else
-		{ generate_form(element_factory, input_field, types[fields[k].second.type.id].fields, types); }
+		{ generate_form(element_factory, input_field, types[fields[k].second.type.name].fields, types); }
 
 		input_field.setAttribute("field-name", fields[k].first);
 		row.appendChild(input_field);
@@ -109,10 +101,10 @@ function generate_form(element_factory, output_element, record_description, type
 		container_title.appendChild(container_title_content);
 		container.appendChild(container_title);
 
-		if(field_type_is_builtin(fields[k].second.type.id))
-		{ container.appendChild(create_builtin_input_field(element_factory, fields[k])); }
+		if(field_type_is_builtin(fields[k].second.type))
+		{ container.appendChild(create_builtin_input_field(element_factory, fields[k].second.type)); }
 		else
-		{ generate_form(element_factory, container, types[fields[k].second.type.id].fields, types); }
+		{ generate_form(element_factory, container, types[fields[k].second.type.name].fields, types); }
 
 		container.setAttribute("field-name", fields[k].first);
 		output_element.appendChild(container);

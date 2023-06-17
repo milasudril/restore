@@ -12,27 +12,31 @@ let record_description = JSON.parse("{\
 	\"description\": {\
 		\"display\": \"block\",\
 		\"type\": {\
-			\"id\": \"restore:string\",\
+			\"category\":\"atom\",\
+			\"name\": \"string\",\
 			\"layout\": \"long\"\
 		}\
 	},\
 	\"name\": {\
 		\"display\": \"inline\",\
 		\"type\": {\
-			\"id\": \"restore:string\",\
+			\"category\":\"atom\",\
+			\"name\": \"string\",\
 			\"layout\": \"short\"\
 		}\
 	},\
 	\"length\": {\
 		\"display\": \"inline\",\
 		\"type\": {\
-			\"id\": \"restore:number\"\
+			\"category\":\"atom\",\
+			\"name\": \"number\"\
 		}\
 	},\
 	\"home_world\": {\
 		\"display\": \"block\",\
 		\"type\": {\
-			\"id\": \"planet\"\
+			\"category\":\"composite\",\
+			\"name\": \"planet\"\
 		}\
 	}\
 }");
@@ -43,27 +47,31 @@ let types = JSON.parse("{\
 			\"name\": {\
 				\"display\": \"inline\",\
 				\"type\": {\
-					\"id\": \"restore:string\",\
+					\"category\":\"atom\",\
+					\"name\": \"string\",\
 					\"layout\": \"short\"\
 				}\
 			},\
 			\"description\": {\
 				\"display\": \"block\",\
 				\"type\": {\
-					\"id\": \"restore:string\",\
+					\"category\":\"atom\",\
+					\"name\": \"string\",\
 					\"layout\": \"long\"\
 				}\
 			},\
 			\"mass\": {\
 				\"display\": \"inline\",\
 				\"type\": {\
-					\"id\": \"restore:number\"\
+					\"category\":\"atom\",\
+					\"name\": \"number\"\
 				}\
 			},\
 			\"radius\": {\
 				\"display\": \"inline\",\
 				\"type\": {\
-					\"id\": \"restore:number\"\
+					\"category\":\"atom\",\
+					\"name\": \"number\"\
 				}\
 			}\
 		}\

@@ -32,7 +32,6 @@ function create_input_field_atom(element_factory, type)
 		let element = type.input_size === "long"?
 			create_text_area(element_factory):
 			element_factory.createElement("input");
-		element.setAttribute("field-type-name", type.name);
 		return element;
 	}
 	else
@@ -40,13 +39,11 @@ function create_input_field_atom(element_factory, type)
 	{
 		let element = element_factory.createElement("input");
 		element.setAttribute("type", "checkbox");
-		element.setAttribute("field-type-name", type.name);
 		return element;
 	}
 	else
 	{
 		let element = element_factory.createElement("input");
-		element.setAttribute("field-type-name", type.name);
 		return element;
 	}
 }
@@ -54,7 +51,6 @@ function create_input_field_atom(element_factory, type)
 function create_input_field_enum(element_factory, type)
 {
 	let element = element_factory.createElement("select")
-	element.setAttribute("field-type-name", "string");
 
 	for(let item in type.allowed_values)
 	{
@@ -70,8 +66,13 @@ function create_input_field_enum(element_factory, type)
 }
 
 
-function create_input_field(element_factory, parent_element, type, types)
+function create_input_field(element_factory, parent_element, field, types)
 {
+	let type = field.second.type;
+	parent_element.setAttribute("field-name", field.first);
+	parent_element.setAttribute("field-type-name", type.name);
+	parent_element.setAttribute("field-type-category", type.category);
+
 	if(type.category === "atom")
 	{
 		parent_element.appendChild(create_input_field_atom(element_factory, type));
@@ -132,9 +133,8 @@ function generate_form(element_factory, output_element, record_description, type
 
 		let input_field_container = element_factory.createElement("td");
 
-		create_input_field(element_factory, input_field_container, fields[k].second.type, types);
+		create_input_field(element_factory, input_field_container, fields[k], types);
 
-		input_field_container.setAttribute("field-name", fields[k].first);
 		row.appendChild(input_field_container);
 		table.appendChild(row);
 	}
@@ -149,9 +149,8 @@ function generate_form(element_factory, output_element, record_description, type
 		container_title.appendChild(container_title_content);
 		input_field_container.appendChild(container_title);
 
-		create_input_field(element_factory, input_field_container, fields[k].second.type, types);
+		create_input_field(element_factory, input_field_container, fields[k], types);
 
-		input_field_container.setAttribute("field-name", fields[k].first);
 		output_element.appendChild(input_field_container);
 	}
 }

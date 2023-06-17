@@ -1,43 +1,82 @@
 <!DOCTYPE html>
-<html>
-<head>
-	<title>Form mock</title>
-	<style>
-	section{border:1px solid}
-	</style>
-</head>
-<body>
-<form>
-	<section>
-		<h1>character</h1>
-		<table>
-			<tr>
-				<th valign="top">name</th>
-				<td valign="top"><input name="name"></td>
-			</tr>
-			<tr>
-				<th valign="top">height</th>
-				<td valign="top"><input name="height"></td>
-			</tr>
-		</table>
-		<section>
-			<h1>home_world</h1>
-			<table>
-			<tr>
-				<th valign="top">name</th>
-				<td valign="top"><input name="name"></td>
-			</td>
-			<tr>
-				<th valign="top">mass</th>
-				<td valign="top"><input name="mass"></td>
-			</td>
-			<tr>
-				<th valign="top">radius</th>
-				<td valign="top"><input name="radius"></td>
-			</td>
-		</table>
-		</section>
-	</section>
-</form>
-</body>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Create task</title>
+		<style>
+			* { outline: 1px solid red; }
+			th.row-header{text-align: left}
+		</style>
+		<script src="serialize_form.js"></script>
+		<script>
+function submit_form(event, subform)
+{
+	event.preventDefault();
+	let output_object = {};
+	serialize_form(subform, output_object);
+	console.log(output_object);
+	return false;
+}
+		</script>
+	</head>
+	<body>
+		<form onsubmit="return submit_form(event, paraminputs);">
+			<section id="paraminputs">
+				<h1>Task parameters</h1>
+				<table>
+					<tr>
+						<th class="row-header">length</th>
+						<td field-name="length"><input value-type="number"></td>
+					</tr>
+					<tr>
+						<th class="row-header">name</th>
+						<td field-name="name"><input value-type="string"></td>
+					</tr>
+				</table>
+				<section field-name="description">
+					<h1>description</h1>
+					<textarea rows="8" value-type="string"></textarea>
+				</section>
+				<section field-name="home_world">
+					<h1>home_world</h1>
+					<table>
+						<tr>
+							<th class="row-header">has_water</th>
+							<td field-name="has_water"><input type="checkbox" value-type="boolean"></td>
+						</tr>
+						<tr>
+							<th class="row-header">mass</th>
+							<td field-name="mass"><input value-type="number"></td>
+						</tr>
+						<tr>
+							<th class="row-header">name</th>
+							<td field-name="name"><input value-type="string"></td>
+						</tr>
+						<tr>
+							<th class="row-header">radius</th>
+							<td field-name="radius"><input value-type="number"></td>
+						</tr>
+						<tr>
+							<th class="row-header">type</th>
+							<td field-name="type">
+								<select value-type="string">
+									<option value="rocky">Rocky</option>
+									<option value="gas_giant">Gas giant</option>
+								</select>
+							</td>
+						</tr>
+					</table>
+					<section field-name="description">
+						<h1>description</h1>
+						<textarea rows="8" value-type="string"></textarea>
+					</section>
+				</section>
+			</section>
+			<nav id="formactions">
+				<ul>
+					<li><input type="submit" value="Submit"></li>
+				</ul>
+			</nav>
+		</form>
+	</body>
 </html>

@@ -10,10 +10,8 @@ import json
 import os
 import wad64
 
-def strip_prefix(path):
-	# FIXME: This only works if source_dir == '.'
-	return path[2:]
-
+def strip_prefix(path, source_dir):
+	return os.path.relpath(path, source_dir)
 
 def compile(params):
 	source_dir = params['build_info']['source_dir']
@@ -25,7 +23,7 @@ def compile(params):
 
 	with wad64.Archive(output_file_name, 'rw', 'co') as archive:
 		for file in files_to_add:
-			archive.insert_file('cot', file, strip_prefix(file))
+			archive.insert_file('cot', file, strip_prefix(file, source_dir))
 
 def main(argv):
 	if sys.argv[1] == 'compile':

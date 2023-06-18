@@ -20,6 +20,11 @@ def get_file_info(src_file):
 	file['last_modified'] = os.stat(src_file).st_mtime
 	return file
 
+def remove_old_files(archive, new_files):
+	existing_files = set(archive.ls().keys())
+	for file in existing_files.difference(new_files):
+		archive.wipe_file(file)
+
 def compile(params):
 	source_dir = params['build_info']['source_dir']
 	output_file_name = params['targets'][0]
@@ -34,7 +39,7 @@ def compile(params):
 			dest_files[dest_file] = get_file_info(src_file)
 
 	with wad64.Archive(output_file_name, 'rw', 'co') as archive:
-		existing_files = set(archive.ls().keys())
+		remove_old_files(archive, set(dest_files.keys()))
 
 		for file in zip(src_files, dest_files.items()):
 			archive.insert_file('cot', file[0], file[1][0])

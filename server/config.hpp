@@ -1,8 +1,7 @@
 #ifndef RESTORE_CONFIG_HPP
 #define RESTORE_CONFIG_HPP
 
-#include <jopp/parser.hpp>
-#include <jopp/serializer.hpp>
+#include <jopp/types.hpp>
 
 namespace restore::config
 {

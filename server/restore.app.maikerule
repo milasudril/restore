@@ -1,0 +1,4 @@
+{
+	"target":{"name":"restore"},
+	"dependencies":[{"ref": "./restore.o", "rel":"implementation"}]
+}

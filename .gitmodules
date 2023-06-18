@@ -1,6 +1,3 @@
-[submodule "extproj/west"]
-	path = extproj/west
-	url = https://github.com/milasudril/west
 [submodule "extproj/testfwk"]
 	path = extproj/testfwk
 	url = https://github.com/milasudril/testfwk

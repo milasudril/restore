@@ -46,7 +46,7 @@ def compile(params):
 			dest_file = file[1][0]
 			if dest_file in existing_files:
 				archive.wipe_file(dest_file)
-			archive.insert_file('cot', file[0], file[1][0])
+			archive.insert_file('ct', file[0], file[1][0])
 		metadata = json.dumps(dest_files, indent=2)
 		print(metadata, file=sys.stderr)
 

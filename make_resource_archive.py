@@ -40,8 +40,12 @@ def compile(params):
 
 	with wad64.Archive(output_file_name, 'rw', 'co') as archive:
 		remove_old_files(archive, set(dest_files.keys()))
+		existing_files = archive.ls()
 
 		for file in zip(src_files, dest_files.items()):
+			dest_file = file[1][0]
+			if dest_file in existing_files:
+				archive.wipe_file(dest_file)
 			archive.insert_file('cot', file[0], file[1][0])
 		metadata = json.dumps(dest_files, indent=2)
 		print(metadata, file=sys.stderr)

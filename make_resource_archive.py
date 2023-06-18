@@ -25,6 +25,13 @@ def remove_old_files(archive, new_files):
 	for file in existing_files.difference(new_files):
 		archive.wipe_file(file)
 
+def get_file_metadata(archive):
+	# NOTE: This solution is fine for a build system, but is not safe in case the file was removed
+	#       between check and read
+	if 'file_metadata.json' in archive.ls():
+		return json.loads(archive.extract_data('file_metadata.json').decode('utf-8'))
+	return dict()
+
 def compile(params):
 	source_dir = params['build_info']['source_dir']
 	output_file_name = params['targets'][0]
@@ -39,16 +46,20 @@ def compile(params):
 			dest_files[dest_file] = get_file_info(src_file)
 
 	with wad64.Archive(output_file_name, 'rw', 'co') as archive:
+		file_metadata = get_file_metadata(archive)
 		remove_old_files(archive, set(dest_files.keys()))
-		existing_files = archive.ls()
 
+		existing_files = archive.ls()
 		for file in zip(src_files, dest_files.items()):
 			dest_file = file[1][0]
-			if dest_file in existing_files:
-				archive.wipe_file(dest_file)
-			archive.insert_file('ct', file[0], file[1][0])
-		metadata = json.dumps(dest_files, indent=2)
-		print(metadata, file=sys.stderr)
+			if dest_file in existing_files and dest_file in file_metadata:
+				if file[1][1]['last_modified'] > file_metadata[dest_file]['last_modified']:
+					archive.wipe_file(dest_file)
+					archive.insert_file('ct', file[0], file[1][0])
+			else:
+				archive.insert_file('ct', file[0], file[1][0])
+
+		archive.insert_data('ct', bytes(json.dumps(dest_files), 'utf-8'), 'file_metadata.json')
 
 def main(argv):
 	if sys.argv[1] == 'compile':

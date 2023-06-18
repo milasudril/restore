@@ -1,3 +1,5 @@
+//@	{"dependencies_extra":[{"ref":"./config.o", "rel":"implementation"}]}
+
 #ifndef RESTORE_CONFIG_HPP
 #define RESTORE_CONFIG_HPP
 

@@ -47,6 +47,9 @@ def compile(params):
 
 	with wad64.Archive(output_file_name, 'rw', 'co') as archive:
 		file_metadata = get_file_metadata(archive)
+
+		# NOTE: since metadata is not in the source directory, it will be removed from the archive
+		#       at this point. Thus, we use `ct` when adding it back.
 		remove_old_files(archive, set(dest_files.keys()))
 
 		existing_files = archive.ls()

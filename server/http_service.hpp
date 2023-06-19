@@ -110,7 +110,8 @@ namespace restore
 					m_served_resource->second.size()
 				);
 				fields.append("Content-Length", std::to_string(m_served_resource->second.size()))
-					.append("Content-Type", std::string{m_served_resource->first.mime_type});
+					.append("Content-Type", std::string{m_served_resource->first.mime_type})
+					.append("Last-Modified", to_string(m_served_resource->first.last_modified));
 
 				west::http::finalize_state_result validation_result{};
 				validation_result.http_status = west::http::status::ok;

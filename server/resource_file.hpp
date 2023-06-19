@@ -18,7 +18,7 @@ namespace restore
 	{
 		jopp::string name;
 		jopp::string mime_type;
-		jopp::number last_modified;
+		std::chrono::system_clock::time_point last_modified;
 	};
 
 	inline resource_info create_resource_info(std::string_view name, jopp::object const& obj)
@@ -26,7 +26,11 @@ namespace restore
 		resource_info ret;
 		ret.name = name;
 		ret.mime_type = obj.get_field_as<jopp::string>("mime_type");
-		ret.last_modified = obj.get_field_as<jopp::number>("last_modified");
+
+		auto const last_modified = obj.get_field_as<jopp::number>("last_modified");
+		ret.last_modified = std::chrono::system_clock::time_point{
+			std::chrono::seconds{static_cast<int64_t>(last_modified)}
+		};
 
 		return ret;
 	}

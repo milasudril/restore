@@ -28,8 +28,7 @@ int main(int argc, char** argv)
 	restore::resource_file resources{website_cfg.get_field_as<jopp::string>("resource_file").c_str()};
 
 	west::service_registry services{};
-	using http_service = restore::http_service<restore::resource_file>;
-	enroll_http_service<http_service>(services, std::move(http_socket), std::cref(resources))
+	enroll_http_service<restore::http_service>(services, std::move(http_socket), std::cref(resources))
 		.process_events();
 
 

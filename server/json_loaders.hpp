@@ -26,6 +26,18 @@ namespace restore::json
 		return load(src);
 	}
 
+	template<class ... T>
+	jopp::object load_object(T&&... args)
+	{
+		auto container = load(std::forward<T>(args)...);
+		auto obj = container.template get_if<jopp::object>();
+
+		if(obj == nullptr)
+		{ throw std::runtime_error{"Expected resource to be an object"}; }
+
+		return std::move(*obj);
+	}
+
 
 }
 

@@ -1,6 +1,9 @@
 #ifndef RESTORE_HTTP_SERVICE_HPP
 #define RESTORE_HTTP_SERVICE_HPP
 
+#include "./json_loaders.hpp"
+#include "./resource_file.hpp"
+
 #include <jopp/serializer.hpp>
 #include <west/http_message_header.hpp>
 #include <west/http_request_handler.hpp>
@@ -54,13 +57,13 @@ namespace restore
 		http_req_processing_result ec;
 	};
 
-	template<class ResourceFile>
 	class http_service
 	{
 	public:
-		explicit http_service(std::reference_wrapper<ResourceFile const> res_file):
-			m_res_file{res_file}
-		{}
+		explicit http_service(std::reference_wrapper<resource_file const> res_file):
+			m_res_file{res_file},
+			m_res_metadata{json::load_object(m_res_file, "file_metadata.json")}
+		{ }
 
 		auto finalize_state(west::http::request_header const& header)
 		{
@@ -73,7 +76,8 @@ namespace restore
 			{
 				auto const resource_name = header.request_line.request_target.value().substr(1);
 				auto resource = m_res_file.get().get_resource(resource_name);
-				printf("%ld\n", resource.size());
+				auto metadata = m_res_metadata.get_resource_info(resource_name);
+				printf("%s %ld\n", metadata.mime_type.c_str(), resource.size());
 			}
 
 			west::http::finalize_state_result validation_result;
@@ -129,7 +133,9 @@ namespace restore
 			};
 		}
 	private:
-		std::reference_wrapper<ResourceFile const> m_res_file;
+		std::reference_wrapper<resource_file const> m_res_file;
+		resource_metadata m_res_metadata;
+
 		std::string m_err_msg;
 		char const* m_response_ptr{nullptr};
 		size_t m_bytes_to_write{0};

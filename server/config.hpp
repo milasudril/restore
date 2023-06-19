@@ -3,6 +3,8 @@
 #ifndef RESTORE_CONFIG_HPP
 #define RESTORE_CONFIG_HPP
 
+#include "./json_loaders.hpp"
+
 #include <jopp/types.hpp>
 
 namespace restore::config

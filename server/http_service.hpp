@@ -130,6 +130,8 @@ namespace restore
 
 		void finalize_state(west::http::field_map& fields, west::http::finalize_state_result const& res)
 		{
+			m_served_resource.reset();
+
 			m_err_msg = to_string(jopp::container{jopp::to_json(res)});
 			m_response_ptr = std::data(m_err_msg);
 			m_bytes_to_write = std::size(m_err_msg);

@@ -5,6 +5,7 @@
 
 #include <wad64/fd_owner.hpp>
 #include <wad64/readonly_archive.hpp>
+#include <wad64/input_file.hpp>
 
 namespace restore
 {
@@ -21,6 +22,12 @@ namespace restore
 			m_fd{filename, Wad64::IoMode::AllowRead(), Wad64::FileCreationMode::DontCare()},
 			m_archive{std::ref(m_fd)}
 		{}
+
+		auto get_resource(std::string_view filename) const
+		{ return Wad64::InputFile{m_archive, filename}; }
+
+		auto const& ls() const
+		{ return m_archive.ls(); }
 
 	private:
 		Wad64::FdOwner m_fd;

@@ -68,6 +68,14 @@ namespace restore
 				header.request_line.method.value().data(),
 				header.request_line.request_target.value().data());
 
+			if(header.request_line.method == "GET"
+				&& header.request_line.request_target.value().starts_with("/ui/"))
+			{
+				auto const resource_name = header.request_line.request_target.value().substr(1);
+				auto resource = m_res_file.get().get_resource(resource_name);
+				printf("%ld\n", resource.size());
+			}
+
 			west::http::finalize_state_result validation_result;
 			validation_result.http_status = west::http::status::not_found;
 

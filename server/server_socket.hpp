@@ -1,5 +1,5 @@
-#ifndef RESTORE_SERVER_SOCKET_CONFIG_HPP
-#define RESTORE_SERVER_SOCKET_CONFIG_HPP
+#ifndef RESTORE_SERVER_SOCKET_HPP
+#define RESTORE_SERVER_SOCKET_HPP
 
 #include <jopp/types.hpp>
 #include <west/io_inet_server_socket.hpp>

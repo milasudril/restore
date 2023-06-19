@@ -21,7 +21,7 @@ namespace restore
 		{ throw std::runtime_error{"Server port min value is out of range"}; }
 		auto const port_min = static_cast<int>(min_value);
 
-		auto const max_value = range.get_field_as<jopp::number>("min");
+		auto const max_value = range.get_field_as<jopp::number>("max");
 		if(max_value < 0.0 || max_value > 65535.0)
 		{ throw std::runtime_error{"Server port min value is out of range"}; }
 		auto const port_max = static_cast<int>(max_value);

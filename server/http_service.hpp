@@ -1,6 +1,7 @@
 #ifndef RESTORE_HTTP_SERVICE_HPP
 #define RESTORE_HTTP_SERVICE_HPP
 
+#include <jopp/serializer.hpp>
 #include <west/http_message_header.hpp>
 #include <west/http_request_handler.hpp>
 
@@ -101,22 +102,29 @@ namespace restore
 
 		void finalize_state(west::http::field_map& fields, west::http::finalize_state_result const& res)
 		{
-			puts("Finalize state failed");
-			auto const errmsg = jopp::to_json(res);
-			fields.append("Content-Length", std::to_string(0))
-				.append("Content-Type", "text/plain");
+			m_err_msg = to_string(jopp::container{jopp::to_json(res)});
+			m_response_ptr = std::data(m_err_msg);
+			m_bytes_to_write = std::size(m_err_msg);
+			fields.append("Content-Length", std::to_string(m_bytes_to_write))
+				.append("Content-Type", "application/json");
 		}
 
 		auto read_response_content(std::span<char> buffer)
 		{
+			auto const bytes_to_write = std::min(std::size(buffer), m_bytes_to_write);
+			std::copy_n(m_response_ptr, bytes_to_write, std::data(buffer));
+			m_response_ptr += bytes_to_write;
+			m_bytes_to_write -= bytes_to_write;
 			return http_read_resp_result{
-				std::size(buffer),
+				bytes_to_write,
 				http_req_processing_result{}
 			};
 		}
 	private:
 		std::reference_wrapper<ResourceFile const> m_res_file;
 		std::string m_err_msg;
+		char const* m_response_ptr{nullptr};
+		size_t m_bytes_to_write{0};
 	};
 }
 

@@ -61,12 +61,12 @@ namespace restore
 	{
 	public:
 		explicit http_service(std::reference_wrapper<resource_file const> res_file):
-			m_res_file{res_file},
-			m_res_metadata{json::load_object(m_res_file, "file_metadata.json")}
+			m_res_file{res_file}
 		{ }
 
 		auto finalize_state(west::http::request_header const& header)
 		{
+			m_served_resource.reset();
 			printf("%s %s\n",
 				header.request_line.method.value().data(),
 				header.request_line.request_target.value().data());
@@ -75,9 +75,11 @@ namespace restore
 				&& header.request_line.request_target.value().starts_with("/ui/"))
 			{
 				auto const resource_name = header.request_line.request_target.value().substr(1);
-				auto resource = m_res_file.get().get_resource(resource_name);
-				auto metadata = m_res_metadata.get_resource_info(resource_name);
-				printf("%s %ld\n", metadata.mime_type.c_str(), resource.size());
+				m_served_resource = m_res_file.get().get_resource(resource_name);
+
+				west::http::finalize_state_result validation_result{};
+				validation_result.http_status = west::http::status::ok;
+				return validation_result;
 			}
 
 			west::http::finalize_state_result validation_result;
@@ -101,6 +103,20 @@ namespace restore
 
 		auto finalize_state(west::http::field_map& fields)
 		{
+			if(m_served_resource.has_value())
+			{
+				printf("Serving resource %s (size %zu)\n",
+					m_served_resource->first.name.c_str(),
+					m_served_resource->second.size()
+				);
+				fields.append("Content-Length", std::to_string(m_served_resource->second.size()))
+					.append("Content-Type", std::string{m_served_resource->first.mime_type});
+
+				west::http::finalize_state_result validation_result{};
+				validation_result.http_status = west::http::status::ok;
+				return validation_result;
+			}
+
 			puts("Finalize state ok");
 
 			fields.append("Content-Length", std::to_string(0))
@@ -123,6 +139,16 @@ namespace restore
 
 		auto read_response_content(std::span<char> buffer)
 		{
+			if(m_served_resource.has_value())
+			{
+				auto const bytes_read = m_served_resource->second.read(std::as_writable_bytes(std::span{std::data(buffer), std::size(buffer)}));
+
+				return http_read_resp_result{
+					bytes_read,
+					http_req_processing_result{}
+				};
+			}
+
 			auto const bytes_to_write = std::min(std::size(buffer), m_bytes_to_write);
 			std::copy_n(m_response_ptr, bytes_to_write, std::data(buffer));
 			m_response_ptr += bytes_to_write;
@@ -134,11 +160,14 @@ namespace restore
 		}
 	private:
 		std::reference_wrapper<resource_file const> m_res_file;
-		resource_metadata m_res_metadata;
+
+		std::optional<std::pair<resource_info, Wad64::InputFile>> m_served_resource;
 
 		std::string m_err_msg;
 		char const* m_response_ptr{nullptr};
 		size_t m_bytes_to_write{0};
+
+
 	};
 }
 

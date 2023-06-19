@@ -86,12 +86,16 @@ namespace restore
 
 		explicit resource_file(char const* filename):
 			m_fd{filename, Wad64::IoMode::AllowRead(), Wad64::FileCreationMode::DontCare()},
-			m_archive{std::ref(m_fd)}
+			m_archive{std::ref(m_fd)},
+			m_res_metadata{json::load_object(Wad64::InputFile{m_archive, "file_metadata.json"})}
 		{}
 
 		auto get_resource(std::string_view filename) const
 		{
-			return Wad64::InputFile{m_archive, filename};
+			return std::pair{
+				m_res_metadata.get_resource_info(filename),
+				Wad64::InputFile{m_archive, filename}
+			};
 		}
 
 		auto const& ls() const
@@ -100,6 +104,7 @@ namespace restore
 	private:
 		Wad64::FdOwner m_fd;
 		Wad64::ReadonlyArchive m_archive;
+		resource_metadata m_res_metadata;
 	};
 }
 

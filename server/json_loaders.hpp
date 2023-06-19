@@ -3,8 +3,7 @@
 #ifndef RESTORE_JSON_LOADERS_HPP
 #define RESTORE_JSON_LOADERS_HPP
 
-#include "./resource_file.hpp"
-
+#include <wad64/input_file.hpp>
 #include <jopp/types.hpp>
 #include <west/io_fd.hpp>
 
@@ -20,16 +19,10 @@ namespace restore::json
 
 	jopp::container load(Wad64::InputFile& src);
 
-	inline jopp::container load(resource_file const& archive, char const* filename)
+	template<class T>
+	jopp::object load_object(T&& src)
 	{
-		auto src = archive.get_resource(filename);
-		return load(src);
-	}
-
-	template<class ... T>
-	jopp::object load_object(T&&... args)
-	{
-		auto container = load(std::forward<T>(args)...);
+		auto container = load(src);
 		auto obj = container.template get_if<jopp::object>();
 
 		if(obj == nullptr)

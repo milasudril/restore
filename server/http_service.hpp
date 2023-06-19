@@ -59,16 +59,10 @@ namespace restore
 			};
 		}
 
-		auto finalize_state(west::http::field_map&)
+		auto finalize_state(west::http::field_map& fields)
 		{
-#if 0
-			// This function is called after the request body has been processed. It is time
-			// to prepare for the answer. You should append Content-Length and Content-Type to
-			// `fields`
-
-			fields.append("Content-Length", std::to_string(std::size( /* content-size */ )))
-				.append("Content-Type", /*content-type*/ );
-#endif
+			fields.append("Content-Length", std::to_string(0))
+				.append("Content-Type", "text/plain");
 
 			west::http::finalize_state_result validation_result;
 			validation_result.http_status = west::http::status::ok;
@@ -76,15 +70,10 @@ namespace restore
 			return validation_result;
 		}
 
-		void finalize_state(west::http::field_map&, west::http::finalize_state_result&&)
+		void finalize_state(west::http::field_map&, west::http::finalize_state_result&& fields)
 		{
-#if 0
-			// This function is called in case of an error during the processing of the request. `res`
-			// contains information about the error
-
-			fields.append("Content-Length", std::to_string(std::size( /* content-size */ )))
-				.append("Content-Type", /* content-type */);
-#endif
+			fields.append("Content-Length", std::to_string(0))
+				.append("Content-Type", "text/plain");
 		}
 
 		auto read_response_content(std::span<char> buffer)

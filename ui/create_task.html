@@ -121,10 +121,10 @@ function submit_form(event, doc, subform)
 	let req = new XMLHttpRequest();
 	let task_name = encodeURIComponent(doc.getElementById("task_name").value);
 	console.log(task_name)
-	req.open("PUT", "/tasks/" + task_name, true);
+	req.open("POST", "/tasks/" + task_name, true);
 	req.responseType = "json";
+	req.setRequestHeader("Accept", "application/json");
 	req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-	req.setRequestHeader("x-milasudril-restore-error-message-format", "application/json")
 	req.onreadystatechange = function() {
 		if(this.readyState == 4)
 		{

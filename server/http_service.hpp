@@ -59,6 +59,12 @@ namespace restore
 
 	inline std::string_view resolve_resource(west::http::uri const& req_target)
 	{
+		if(req_target == "/favicon.ico")
+		{ return "ui/favicon.ico"; }
+
+		if(req_target == "/")
+		{ return "ui/mainpage.html"; }
+
 		return req_target.value().substr(1);
 	}
 
@@ -77,7 +83,9 @@ namespace restore
 				header.request_line.request_target.value().data());
 
 			if(header.request_line.method == "GET"
-				&& header.request_line.request_target.value().starts_with("/ui/"))
+				&& (header.request_line.request_target.value().starts_with("/ui/")
+				|| header.request_line.request_target == "/"
+				|| header.request_line.request_target == "/favicon.ico"))
 			{
 				auto const resource_name = resolve_resource(header.request_line.request_target);
 				m_served_resource = m_res_file.get().get_resource(resource_name);

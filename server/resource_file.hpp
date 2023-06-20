@@ -97,8 +97,8 @@ namespace restore
 		auto get_resource(std::string_view filename) const
 		{
 			return std::pair{
-				m_res_metadata.get_resource_info(filename),
-				Wad64::InputFile{m_archive, filename}
+				Wad64::InputFile{m_archive, filename},
+				m_res_metadata.get_resource_info(filename)
 			};
 		}
 

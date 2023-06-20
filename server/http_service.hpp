@@ -92,9 +92,9 @@ namespace restore
 	class resource_server
 	{
 	public:
-		explicit resource_server(resource_info&& res_info, Wad64::InputFile&& input_file):
-			m_resource_info{std::move(res_info)},
-			m_input_file{std::move(input_file)}
+		explicit resource_server(Wad64::InputFile&& input_file, resource_info&& res_info):
+			m_input_file{std::move(input_file)},
+			m_resource_info{std::move(res_info)}
 		{}
 
 		auto finalize_state(west::http::field_map& fields) const
@@ -119,8 +119,8 @@ namespace restore
 		}
 
 	private:
-		resource_info m_resource_info;
 		Wad64::InputFile m_input_file;
+		resource_info m_resource_info;
 	};
 
 	class json_error_response_server
@@ -185,8 +185,8 @@ namespace restore
 
 				try
 				{
-					auto [res_info, input_file] = m_res_file.get().get_resource(resource_name);
-					m_current_server = resource_server{std::move(res_info), std::move(input_file)};
+					auto [input_file, file_info] = m_res_file.get().get_resource(resource_name);
+					m_current_server = resource_server{std::move(input_file), std::move(file_info)};
 					west::http::finalize_state_result validation_result{};
 					validation_result.http_status = west::http::status::ok;
 					return validation_result;

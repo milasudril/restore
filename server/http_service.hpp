@@ -71,6 +71,45 @@ namespace restore
 		return std::string_view{};
 	}
 
+	class resource_server
+	{
+	public:
+		explicit resource_server(resource_info&& res_info, Wad64::InputFile&& input_file):
+			m_resource_info{std::move(res_info)},
+			m_input_file{std::move(input_file)}
+		{}
+
+		auto finalize_state(west::http::field_map& fields) const
+		{
+			printf("Serving resource %s (size %zu)\n",
+				m_resource_info.name.c_str(),
+				m_input_file.size()
+			);
+			fields.append("Content-Length", std::to_string(m_input_file.size()))
+				.append("Content-Type", std::string{m_resource_info.mime_type})
+				.append("Last-Modified", to_string(m_resource_info.last_modified));
+
+			west::http::finalize_state_result validation_result{};
+			validation_result.http_status = west::http::status::ok;
+			return validation_result;
+		}
+
+		auto read_response_content(std::span<char> buffer)
+		{
+			auto const bytes_read = m_input_file.read(std::as_writable_bytes(std::span{std::data(buffer), std::size(buffer)}));
+
+			return http_read_resp_result{
+				bytes_read,
+				http_req_processing_result{}
+			};
+		}
+
+
+	private:
+		resource_info m_resource_info;
+		Wad64::InputFile m_input_file;
+	};
+
 	class http_service
 	{
 	public:
@@ -97,7 +136,8 @@ namespace restore
 					return validation_result;
 				}
 
-				m_served_resource = m_res_file.get().get_resource(resource_name);
+				auto [res_info, input_file] = m_res_file.get().get_resource(resource_name);
+				m_served_resource = resource_server{std::move(res_info), std::move(input_file)};
 				west::http::finalize_state_result validation_result{};
 				validation_result.http_status = west::http::status::ok;
 				return validation_result;
@@ -122,17 +162,7 @@ namespace restore
 		{
 			if(m_served_resource.has_value())
 			{
-				printf("Serving resource %s (size %zu)\n",
-					m_served_resource->first.name.c_str(),
-					m_served_resource->second.size()
-				);
-				fields.append("Content-Length", std::to_string(m_served_resource->second.size()))
-					.append("Content-Type", std::string{m_served_resource->first.mime_type})
-					.append("Last-Modified", to_string(m_served_resource->first.last_modified));
-
-				west::http::finalize_state_result validation_result{};
-				validation_result.http_status = west::http::status::ok;
-				return validation_result;
+				return m_served_resource->finalize_state(fields);
 			}
 
 			puts("Finalize state ok");
@@ -161,12 +191,7 @@ namespace restore
 		{
 			if(m_served_resource.has_value())
 			{
-				auto const bytes_read = m_served_resource->second.read(std::as_writable_bytes(std::span{std::data(buffer), std::size(buffer)}));
-
-				return http_read_resp_result{
-					bytes_read,
-					http_req_processing_result{}
-				};
+				return m_served_resource->read_response_content(buffer);
 			}
 
 			auto const bytes_to_write = std::min(std::size(buffer), m_bytes_to_write);
@@ -181,7 +206,7 @@ namespace restore
 	private:
 		std::reference_wrapper<resource_file const> m_res_file;
 
-		std::optional<std::pair<resource_info, Wad64::InputFile>> m_served_resource;
+		std::optional<resource_server> m_served_resource;
 
 		std::string m_err_msg;
 		char const* m_response_ptr{nullptr};

@@ -65,7 +65,10 @@ namespace restore
 		if(req_target == "/")
 		{ return "ui/mainpage.html"; }
 
-		return req_target.value().substr(1);
+		if(req_target.value().starts_with("/ui/"))
+		{ return req_target.value().substr(1); }
+
+		return std::string_view{};
 	}
 
 	class http_service
@@ -82,14 +85,19 @@ namespace restore
 				header.request_line.method.value().data(),
 				header.request_line.request_target.value().data());
 
-			if(header.request_line.method == "GET"
-				&& (header.request_line.request_target.value().starts_with("/ui/")
-				|| header.request_line.request_target == "/"
-				|| header.request_line.request_target == "/favicon.ico"))
+			if(header.request_line.method == "GET")
 			{
 				auto const resource_name = resolve_resource(header.request_line.request_target);
-				m_served_resource = m_res_file.get().get_resource(resource_name);
+				if(std::size(resource_name) == 0)
+				{
+					west::http::finalize_state_result validation_result;
+					validation_result.http_status = west::http::status::not_found;
+					validation_result.error_message = west::make_unique_cstr("Resource not found");
 
+					return validation_result;
+				}
+
+				m_served_resource = m_res_file.get().get_resource(resource_name);
 				west::http::finalize_state_result validation_result{};
 				validation_result.http_status = west::http::status::ok;
 				return validation_result;
@@ -97,11 +105,7 @@ namespace restore
 
 			west::http::finalize_state_result validation_result;
 			validation_result.http_status = west::http::status::not_found;
-
-			std::string errmsg{"Unknown resource `"};
-			errmsg.append(header.request_line.request_target.value())
-				.append("`");
-			validation_result.error_message = west::make_unique_cstr(errmsg.c_str());
+			validation_result.error_message = west::make_unique_cstr("Resource not found");
 
 			return validation_result;
 		}

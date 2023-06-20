@@ -170,11 +170,30 @@ namespace restore
 
 		auto finalize_state(west::http::request_header const& header)
 		{
-			printf("%s %s\n",
-				header.request_line.method.value().data(),
-				header.request_line.request_target.value().data());
+			auto const& req_method = header.request_line.method;
+			auto const& req_target = header.request_line.request_target;
 
-			auto const resource_name = resolve_resource(header.request_line.request_target);
+			printf("%s %s\n", req_method.value().data(),
+				req_target.value().data());
+
+
+			if(req_target == "/parameters")
+			{
+				puts("Get list of parameters");
+			}
+
+			if(req_target == "/tasks")
+			{
+				puts("Get list of tasks");
+			}
+
+			if(req_target.value().starts_with("/tasks/"))
+			{
+				puts("Manipulate task");
+			}
+
+
+			auto const resource_name = resolve_resource(req_target);
 			if(std::size(resource_name) == 0)
 			{
 				west::http::finalize_state_result validation_result;
@@ -184,7 +203,7 @@ namespace restore
 				return validation_result;
 			}
 
-			if(header.request_line.method != "GET")
+			if(req_method != "GET")
 			{
 				west::http::finalize_state_result validation_result;
 				validation_result.http_status = west::http::status::method_not_allowed;

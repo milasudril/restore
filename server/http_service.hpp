@@ -177,14 +177,19 @@ namespace restore
 				req_target.value().data());
 
 
-			if(req_target == "/parameters")
+			if(req_target == "/task_parameters")
 			{
-				puts("Get list of parameters");
+				puts("Get task_parameters");
+			}
+
+			if(req_target == "/parameter_types")
+			{
+				puts("Get parameter_types");
 			}
 
 			if(req_target == "/tasks")
 			{
-				puts("Get list of tasks");
+				puts("Get tasks");
 			}
 
 			if(req_target.value().starts_with("/tasks/"))

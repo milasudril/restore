@@ -111,15 +111,16 @@ let types = JSON.parse("{\
 </script>
 
 <script>
-function submit_form(event, subform)
+function submit_form(event, doc, subform)
 {
 	event.preventDefault();
-	let output_object = {};
+	let output_object = {}
 	serialize_form(subform, output_object);
 
 	let message = JSON.stringify(output_object);
 	let req = new XMLHttpRequest();
-	req.open("POST", "/actions/create_task", true);
+	let task_name = doc.getElementById("task_name").value
+	req.open("PUT", "/tasks/" + task_name, true);
 	req.responseType = "json";
 	req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 	req.setRequestHeader("x-milasudril-restore-error-message-format", "application/json")
@@ -137,9 +138,19 @@ function submit_form(event, subform)
 
 	</head>
 	<body onload="generate_form(document, paraminputs, record_description, types)">
-	<form onsubmit="return submit_form(event, paraminputs);">
+	<form onsubmit="return submit_form(event, document, paraminputs);">
+		<h1>Create task</h1>
+		<table>
+			<tr>
+				<th class="row-header">name</th>
+				<td field-name="name" field-type-name="string" field-type-category="atom">
+					<input id="task_name">
+				</td>
+			</tr>
+		</table>
+
 		<section id="paraminputs">
-			<h1>Task parameters</h1>
+			<h1>Parameters</h1>
 		</section>
 		<nav id="formactions">
 			<ul>

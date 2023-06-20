@@ -81,10 +81,6 @@ namespace restore
 
 		auto finalize_state(west::http::field_map& fields) const
 		{
-			printf("Serving resource %s (size %zu)\n",
-				m_resource_info.name.c_str(),
-				m_input_file.size()
-			);
 			fields.append("Content-Length", std::to_string(m_input_file.size()))
 				.append("Content-Type", std::string{m_resource_info.mime_type})
 				.append("Last-Modified", to_string(m_resource_info.last_modified));
@@ -104,10 +100,44 @@ namespace restore
 			};
 		}
 
-
 	private:
 		resource_info m_resource_info;
 		Wad64::InputFile m_input_file;
+	};
+
+	class json_error_response_server
+	{
+	public:
+		json_error_response_server() = default;
+
+		explicit json_error_response_server(west::http::finalize_state_result const& res):
+			m_err_msg{to_string(jopp::container{jopp::to_json(res)})},
+			m_response_ptr{std::data(m_err_msg)},
+			m_bytes_to_write{std::size(m_err_msg)}
+		{ }
+
+		void finalize_state(west::http::field_map& fields) const
+		{
+			fields.append("Content-Length", std::to_string(m_bytes_to_write))
+				.append("Content-Type", "application/json");
+		}
+
+		auto read_response_content(std::span<char> buffer)
+		{
+			auto const bytes_to_write = std::min(std::size(buffer), m_bytes_to_write);
+			std::copy_n(m_response_ptr, bytes_to_write, std::data(buffer));
+			m_response_ptr += bytes_to_write;
+			m_bytes_to_write -= bytes_to_write;
+			return http_read_resp_result{
+				bytes_to_write,
+				http_req_processing_result{}
+			};
+		}
+
+	private:
+		std::string m_err_msg;
+		char const* m_response_ptr{nullptr};
+		size_t m_bytes_to_write{0};
 	};
 
 	class http_service
@@ -180,39 +210,22 @@ namespace restore
 		{
 			m_served_resource.reset();
 
-			m_err_msg = to_string(jopp::container{jopp::to_json(res)});
-			m_response_ptr = std::data(m_err_msg);
-			m_bytes_to_write = std::size(m_err_msg);
-			fields.append("Content-Length", std::to_string(m_bytes_to_write))
-				.append("Content-Type", "application/json");
+			m_json_error_resposne = json_error_response_server{res};
+			m_json_error_resposne.finalize_state(fields);
 		}
 
 		auto read_response_content(std::span<char> buffer)
 		{
 			if(m_served_resource.has_value())
-			{
-				return m_served_resource->read_response_content(buffer);
-			}
-
-			auto const bytes_to_write = std::min(std::size(buffer), m_bytes_to_write);
-			std::copy_n(m_response_ptr, bytes_to_write, std::data(buffer));
-			m_response_ptr += bytes_to_write;
-			m_bytes_to_write -= bytes_to_write;
-			return http_read_resp_result{
-				bytes_to_write,
-				http_req_processing_result{}
-			};
+			{ return m_served_resource->read_response_content(buffer); }
+			else
+			{ return m_json_error_resposne.read_response_content(buffer); }
 		}
 	private:
 		std::reference_wrapper<resource_file const> m_res_file;
 
 		std::optional<resource_server> m_served_resource;
-
-		std::string m_err_msg;
-		char const* m_response_ptr{nullptr};
-		size_t m_bytes_to_write{0};
-
-
+		json_error_response_server m_json_error_resposne;
 	};
 }
 

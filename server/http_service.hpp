@@ -197,13 +197,12 @@ namespace restore
 				puts("Manipulate task");
 			}
 
-
 			auto const resource_name = resolve_resource(req_target);
 			if(std::size(resource_name) == 0)
 			{
 				west::http::finalize_state_result validation_result;
 				validation_result.http_status = west::http::status::not_found;
-				validation_result.error_message = west::make_unique_cstr(header.request_line.request_target.value());
+				validation_result.error_message = west::make_unique_cstr(req_target.value());
 
 				return validation_result;
 			}
@@ -212,7 +211,7 @@ namespace restore
 			{
 				west::http::finalize_state_result validation_result;
 				validation_result.http_status = west::http::status::method_not_allowed;
-				validation_result.error_message = west::make_unique_cstr(header.request_line.request_target.value());
+				validation_result.error_message = west::make_unique_cstr(req_target.value());
 
 				return validation_result;
 			}

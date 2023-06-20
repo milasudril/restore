@@ -71,6 +71,24 @@ namespace restore
 		return std::string_view{};
 	}
 
+	struct null_server
+	{
+		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
+		{ return std::strong_ordering::equal; }
+
+		auto finalize_state(west::http::field_map&) const {
+			return west::http::finalize_state_result{};
+		}
+
+		auto read_response_content(std::span<char>)
+		{
+			return http_read_resp_result{
+				0,
+				http_req_processing_result{}
+			};
+		}
+	};
+
 	class resource_server
 	{
 	public:
@@ -108,18 +126,17 @@ namespace restore
 	class json_error_response_server
 	{
 	public:
-		json_error_response_server() = default;
-
 		explicit json_error_response_server(west::http::finalize_state_result const& res):
 			m_err_msg{to_string(jopp::container{jopp::to_json(res)})},
 			m_response_ptr{std::data(m_err_msg)},
 			m_bytes_to_write{std::size(m_err_msg)}
 		{ }
 
-		void finalize_state(west::http::field_map& fields) const
+		auto finalize_state(west::http::field_map& fields) const
 		{
 			fields.append("Content-Length", std::to_string(m_bytes_to_write))
 				.append("Content-Type", "application/json");
+			return west::http::finalize_state_result{};
 		}
 
 		auto read_response_content(std::span<char> buffer)
@@ -142,6 +159,7 @@ namespace restore
 
 	class http_service
 	{
+		using server = std::variant<null_server, resource_server, json_error_response_server>;
 	public:
 		explicit http_service(std::reference_wrapper<resource_file const> res_file):
 			m_res_file{res_file}
@@ -149,7 +167,6 @@ namespace restore
 
 		auto finalize_state(west::http::request_header const& header)
 		{
-			m_served_resource.reset();
 			printf("%s %s\n",
 				header.request_line.method.value().data(),
 				header.request_line.request_target.value().data());
@@ -167,7 +184,7 @@ namespace restore
 				}
 
 				auto [res_info, input_file] = m_res_file.get().get_resource(resource_name);
-				m_served_resource = resource_server{std::move(res_info), std::move(input_file)};
+				m_current_server = resource_server{std::move(res_info), std::move(input_file)};
 				west::http::finalize_state_result validation_result{};
 				validation_result.http_status = west::http::status::ok;
 				return validation_result;
@@ -190,42 +207,30 @@ namespace restore
 
 		auto finalize_state(west::http::field_map& fields)
 		{
-			if(m_served_resource.has_value())
-			{
-				return m_served_resource->finalize_state(fields);
-			}
-
-			puts("Finalize state ok");
-
-			fields.append("Content-Length", std::to_string(0))
-				.append("Content-Type", "text/plain");
-
-			west::http::finalize_state_result validation_result;
-			validation_result.http_status = west::http::status::ok;
-			validation_result.error_message = nullptr;
-			return validation_result;
+			return std::visit([&fields](auto const& server) {
+				return server.finalize_state(fields);
+			}, m_current_server);
 		}
 
 		void finalize_state(west::http::field_map& fields, west::http::finalize_state_result const& res)
 		{
-			m_served_resource.reset();
-
-			m_json_error_resposne = json_error_response_server{res};
-			m_json_error_resposne.finalize_state(fields);
+			m_current_server = json_error_response_server{res};
+			std::visit([&fields](auto const& server) {
+				return server.finalize_state(fields);
+			}, m_current_server);
 		}
 
 		auto read_response_content(std::span<char> buffer)
 		{
-			if(m_served_resource.has_value())
-			{ return m_served_resource->read_response_content(buffer); }
-			else
-			{ return m_json_error_resposne.read_response_content(buffer); }
+			return std::visit([buffer](auto& server){
+				return server.read_response_content(buffer);
+			}, m_current_server);
 		}
+
 	private:
 		std::reference_wrapper<resource_file const> m_res_file;
 
-		std::optional<resource_server> m_served_resource;
-		json_error_response_server m_json_error_resposne;
+		server m_current_server;
 	};
 }
 

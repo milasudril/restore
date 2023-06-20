@@ -171,40 +171,40 @@ namespace restore
 				header.request_line.method.value().data(),
 				header.request_line.request_target.value().data());
 
-			if(header.request_line.method == "GET")
+			auto const resource_name = resolve_resource(header.request_line.request_target);
+			if(std::size(resource_name) == 0)
 			{
-				auto const resource_name = resolve_resource(header.request_line.request_target);
-				if(std::size(resource_name) == 0)
-				{
-					west::http::finalize_state_result validation_result;
-					validation_result.http_status = west::http::status::not_found;
-					validation_result.error_message = west::make_unique_cstr("Resource not found");
+				west::http::finalize_state_result validation_result;
+				validation_result.http_status = west::http::status::not_found;
+				validation_result.error_message = west::make_unique_cstr(header.request_line.request_target.value());
 
-					return validation_result;
-				}
-
-				try
-				{
-					auto [input_file, file_info] = m_res_file.get().get_resource(resource_name);
-					m_current_server = resource_server{std::move(input_file), std::move(file_info)};
-					west::http::finalize_state_result validation_result{};
-					validation_result.http_status = west::http::status::ok;
-					return validation_result;
-				}
-				catch(std::runtime_error const& err)
-				{
-					west::http::finalize_state_result validation_result;
-					validation_result.http_status = west::http::status::not_found;
-					validation_result.error_message = west::make_unique_cstr(err.what());
-					return validation_result;
-				}
+				return validation_result;
 			}
 
-			west::http::finalize_state_result validation_result;
-			validation_result.http_status = west::http::status::not_found;
-			validation_result.error_message = west::make_unique_cstr("Resource not found");
+			if(header.request_line.method != "GET")
+			{
+				west::http::finalize_state_result validation_result;
+				validation_result.http_status = west::http::status::method_not_allowed;
+				validation_result.error_message = west::make_unique_cstr(header.request_line.request_target.value());
 
-			return validation_result;
+				return validation_result;
+			}
+
+			try
+			{
+				auto [input_file, file_info] = m_res_file.get().get_resource(resource_name);
+				m_current_server = resource_server{std::move(input_file), std::move(file_info)};
+				west::http::finalize_state_result validation_result{};
+				validation_result.http_status = west::http::status::ok;
+				return validation_result;
+			}
+			catch(std::runtime_error const& err)
+			{
+				west::http::finalize_state_result validation_result;
+				validation_result.http_status = west::http::status::not_found;
+				validation_result.error_message = west::make_unique_cstr(err.what());
+				return validation_result;
+			}
 		}
 
 		auto process_request_content(std::span<char const> buffer)

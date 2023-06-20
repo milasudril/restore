@@ -123,20 +123,23 @@ namespace restore
 		resource_info m_resource_info;
 	};
 
-	class json_error_response_server
+	class json_response_server
 	{
 	public:
-		explicit json_error_response_server(west::http::finalize_state_result const& res):
-			m_err_msg{to_string(jopp::container{jopp::to_json(res)})},
-			m_response_ptr{std::data(m_err_msg)},
-			m_bytes_to_write{std::size(m_err_msg)}
+		explicit json_response_server(jopp::container const& response):
+			m_response{to_string(response)},
+			m_response_ptr{std::data(m_response)},
+			m_bytes_to_write{std::size(m_response)}
 		{ }
 
 		auto finalize_state(west::http::field_map& fields) const
 		{
 			fields.append("Content-Length", std::to_string(m_bytes_to_write))
 				.append("Content-Type", "application/json");
-			return west::http::finalize_state_result{};
+
+			west::http::finalize_state_result validation_result{};
+			validation_result.http_status = west::http::status::ok;
+			return validation_result;
 		}
 
 		auto read_response_content(std::span<char> buffer)
@@ -152,14 +155,14 @@ namespace restore
 		}
 
 	private:
-		std::string m_err_msg;
+		std::string m_response;
 		char const* m_response_ptr{nullptr};
 		size_t m_bytes_to_write{0};
 	};
 
 	class http_service
 	{
-		using server = std::variant<null_server, resource_server, json_error_response_server>;
+		using server = std::variant<null_server, resource_server, json_response_server>;
 	public:
 		explicit http_service(std::reference_wrapper<resource_file const> res_file):
 			m_res_file{res_file}
@@ -224,7 +227,7 @@ namespace restore
 
 		void finalize_state(west::http::field_map& fields, west::http::finalize_state_result const& res)
 		{
-			m_current_server = json_error_response_server{res};
+			m_current_server = json_response_server{jopp::container{jopp::to_json(res)}};
 			std::visit([&fields](auto const& server) {
 				return server.finalize_state(fields);
 			}, m_current_server);

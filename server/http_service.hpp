@@ -183,11 +183,21 @@ namespace restore
 					return validation_result;
 				}
 
-				auto [res_info, input_file] = m_res_file.get().get_resource(resource_name);
-				m_current_server = resource_server{std::move(res_info), std::move(input_file)};
-				west::http::finalize_state_result validation_result{};
-				validation_result.http_status = west::http::status::ok;
-				return validation_result;
+				try
+				{
+					auto [res_info, input_file] = m_res_file.get().get_resource(resource_name);
+					m_current_server = resource_server{std::move(res_info), std::move(input_file)};
+					west::http::finalize_state_result validation_result{};
+					validation_result.http_status = west::http::status::ok;
+					return validation_result;
+				}
+				catch(std::runtime_error const& err)
+				{
+					west::http::finalize_state_result validation_result;
+					validation_result.http_status = west::http::status::not_found;
+					validation_result.error_message = west::make_unique_cstr(err.what());
+					return validation_result;
+				}
 			}
 
 			west::http::finalize_state_result validation_result;

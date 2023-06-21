@@ -9,7 +9,7 @@
 				{
 					"config":
 					{
-						"cflags":["-s"]
+						"cflags":[]
 					}
 				}
 			},

@@ -9,6 +9,7 @@
             "app": {
                 "compiler": {
                     "config": {
+											"cflags":["-g"]
                     },
                     "recipe": "cxx_linker.py",
                     "use_get_tags": 0
@@ -31,6 +32,7 @@
                         "cflags": [
                             "-DGEOSIMD_MAX_BUILTIN_VECTOR_BYTE_SIZE=32",
                             "-Wall",
+                            "-g",
                             "-march=native",
                             "-Wextra",
                             "-Werror",

@@ -13,22 +13,38 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target == "/task_parameters")
 	{
-		puts("Get task_parameters");
+		puts("Get parameter types");
+		return west::http::finalize_state_result{
+			.http_status = west::http::status::not_implemented,
+			.error_message = nullptr
+		};
 	}
 
 	if(req_target == "/parameter_types")
 	{
-		puts("Get parameter_types");
+		m_current_server = json_response_server{m_param_types};
+		return west::http::finalize_state_result{
+			.http_status = west::http::status::ok,
+			.error_message = nullptr
+		};
 	}
 
 	if(req_target == "/tasks")
 	{
 		puts("Get tasks");
+		return west::http::finalize_state_result{
+			.http_status = west::http::status::not_implemented,
+			.error_message = nullptr
+		};
 	}
 
 	if(req_target.value().starts_with("/tasks/"))
 	{
 		puts("Manipulate task");
+		return west::http::finalize_state_result{
+			.http_status = west::http::status::not_implemented,
+			.error_message = nullptr
+		};
 	}
 
 	auto res = serve_resource(header, m_res_file);

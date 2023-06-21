@@ -38,8 +38,10 @@ namespace restore
 	{
 		using server = std::variant<null_server, resource_server, json_response_server>;
 	public:
-		explicit http_service(std::reference_wrapper<resource_file const> res_file):
-			m_res_file{res_file}
+		explicit http_service(std::reference_wrapper<resource_file const> res_file,
+			std::reference_wrapper<jopp::container const> param_types):
+			m_res_file{res_file},
+			m_param_types{param_types}
 		{ }
 
 		west::http::finalize_state_result finalize_state(west::http::request_header const& header);
@@ -54,7 +56,7 @@ namespace restore
 
 		auto finalize_state(west::http::field_map& fields)
 		{
-			return std::visit([&fields](auto const& server) {
+			return std::visit([&fields](auto& server) {
 				return server.finalize_state(fields);
 			}, m_current_server);
 		}
@@ -62,7 +64,7 @@ namespace restore
 		void finalize_state(west::http::field_map& fields, west::http::finalize_state_result const& res)
 		{
 			m_current_server = json_response_server{jopp::container{jopp::to_json(res)}};
-			std::visit([&fields](auto const& server) {
+			std::visit([&fields](auto& server) {
 				return server.finalize_state(fields);
 			}, m_current_server);
 		}
@@ -76,6 +78,7 @@ namespace restore
 
 	private:
 		std::reference_wrapper<resource_file const> m_res_file;
+		std::reference_wrapper<jopp::container const> m_param_types;
 
 		server m_current_server;
 	};

@@ -13,13 +13,15 @@ namespace restore
 	{
 	public:
 		explicit json_response_server(jopp::container const& response):
-			m_response{to_string(response)},
-			m_response_ptr{std::data(m_response)},
-			m_bytes_to_write{std::size(m_response)}
+			m_response{to_string(response)}
 		{ }
 
-		auto finalize_state(west::http::field_map& fields) const
+		auto finalize_state(west::http::field_map& fields)
 		{
+			// Initialize after ctor to avoid having to deal with SBO-related stuff in std::string
+			m_response_ptr = std::data(m_response);
+			m_bytes_to_write = std::size(m_response);
+
 			fields.append("Content-Length", std::to_string(m_bytes_to_write))
 				.append("Content-Type", "application/json");
 

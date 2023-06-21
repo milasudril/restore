@@ -14,26 +14,27 @@ let pending_task_list = fetch("/tasks", {
 		"Accept": "application/json"
 	}
 }).then(function(res) {
-	return res.json();
-}).then(function(data){
-	return data;
+	return {succeeded: res.ok, pending_message: res.json()};
+}).then(async function(data){
+	let message = await data.pending_message;
+	return {succeeded: data.succeeded, message: message};
 });
 
 function fill_tasklist(response, element_factory, output_container)
 {
-	if(response.error_message)
+	if(!response.succeeded)
 	{
 		let caption = element_factory.createElement("caption");
 		caption.setAttribute("class", "error_message");
-		let caption_content = element_factory.createTextNode(response.error_message);
+		let caption_content = element_factory.createTextNode(response.message.error_message);
 		caption.appendChild(caption_content);
 		output_container.appendChild(caption);
 	}
 }
 
 window.onload = async function() {
-	let task_list = await pending_task_list;
-	fill_tasklist(task_list, document, document.getElementById("tasklist"));
+	let get_task_list_result = await pending_task_list;
+	fill_tasklist(get_task_list_result, document, document.getElementById("tasklist"));
 }
 	</script>
 	</head>

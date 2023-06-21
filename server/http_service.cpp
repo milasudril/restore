@@ -16,7 +16,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 		puts("Get parameter types");
 		return west::http::finalize_state_result{
 			.http_status = west::http::status::not_implemented,
-			.error_message = nullptr
+			.error_message = west::make_unique_cstr("Under construction")
 		};
 	}
 
@@ -34,7 +34,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 		puts("Get tasks");
 		return west::http::finalize_state_result{
 			.http_status = west::http::status::not_implemented,
-			.error_message = nullptr
+			.error_message = west::make_unique_cstr("Under construction")
 		};
 	}
 
@@ -43,7 +43,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 		puts("Manipulate task");
 		return west::http::finalize_state_result{
 			.http_status = west::http::status::not_implemented,
-			.error_message = nullptr
+			.error_message = west::make_unique_cstr("Under construction")
 		};
 	}
 

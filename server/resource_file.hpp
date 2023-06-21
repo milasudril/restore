@@ -4,6 +4,7 @@
 #define RESTORE_RESOURCE_FILE_HPP
 
 #include "./utils.hpp"
+#include "./json_loaders.hpp"
 
 #include <jopp/types.hpp>
 #include <wad64/fd_owner.hpp>

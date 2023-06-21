@@ -5,10 +5,9 @@
 
 #include "./json_loaders.hpp"
 #include "./resource_file.hpp"
-
-#include <jopp/serializer.hpp>
-#include <west/http_message_header.hpp>
-#include <west/http_request_handler.hpp>
+#include "./resource_server.hpp"
+#include "./null_server.hpp"
+#include "./json_response_server.hpp"
 
 template<>
 struct jopp::object_converter<west::http::status>
@@ -35,133 +34,6 @@ struct jopp::object_converter<west::http::finalize_state_result>
 
 namespace restore
 {
-	enum class http_req_processing_result{};
-
-	constexpr bool can_continue(http_req_processing_result)
-	{ return true; }
-
-	constexpr bool is_error_indicator(http_req_processing_result)
-	{ return false; }
-
-
-	constexpr char const* to_string(http_req_processing_result)
-	{ return "No error"; }
-
-	struct http_write_req_result
-	{
-		size_t bytes_written;
-		http_req_processing_result ec;
-	};
-
-	struct http_read_resp_result
-	{
-		size_t bytes_read;
-		http_req_processing_result ec;
-	};
-
-	inline std::string_view resolve_resource(west::http::uri const& req_target)
-	{
-		if(req_target == "/favicon.ico")
-		{ return "ui/favicon.ico"; }
-
-		if(req_target == "/")
-		{ return "ui/mainpage.html"; }
-
-		if(req_target.value().starts_with("/ui/"))
-		{ return req_target.value().substr(1); }
-
-		return std::string_view{};
-	}
-
-	struct null_server
-	{
-		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
-		{ return std::strong_ordering::equal; }
-
-		auto finalize_state(west::http::field_map&) const {
-			return west::http::finalize_state_result{};
-		}
-
-		auto read_response_content(std::span<char>)
-		{
-			return http_read_resp_result{
-				0,
-				http_req_processing_result{}
-			};
-		}
-	};
-
-	class resource_server
-	{
-	public:
-		explicit resource_server(Wad64::InputFile&& input_file, resource_info&& res_info):
-			m_input_file{std::move(input_file)},
-			m_resource_info{std::move(res_info)}
-		{}
-
-		auto finalize_state(west::http::field_map& fields) const
-		{
-			fields.append("Content-Length", std::to_string(m_input_file.size()))
-				.append("Content-Type", std::string{m_resource_info.mime_type})
-				.append("Last-Modified", to_string(m_resource_info.last_modified));
-
-			west::http::finalize_state_result validation_result{};
-			validation_result.http_status = west::http::status::ok;
-			return validation_result;
-		}
-
-		auto read_response_content(std::span<char> buffer)
-		{
-			auto const bytes_read = m_input_file.read(std::as_writable_bytes(std::span{std::data(buffer), std::size(buffer)}));
-
-			return http_read_resp_result{
-				bytes_read,
-				http_req_processing_result{}
-			};
-		}
-
-	private:
-		Wad64::InputFile m_input_file;
-		resource_info m_resource_info;
-	};
-
-	class json_response_server
-	{
-	public:
-		explicit json_response_server(jopp::container const& response):
-			m_response{to_string(response)},
-			m_response_ptr{std::data(m_response)},
-			m_bytes_to_write{std::size(m_response)}
-		{ }
-
-		auto finalize_state(west::http::field_map& fields) const
-		{
-			fields.append("Content-Length", std::to_string(m_bytes_to_write))
-				.append("Content-Type", "application/json");
-
-			west::http::finalize_state_result validation_result{};
-			validation_result.http_status = west::http::status::ok;
-			return validation_result;
-		}
-
-		auto read_response_content(std::span<char> buffer)
-		{
-			auto const bytes_to_write = std::min(std::size(buffer), m_bytes_to_write);
-			std::copy_n(m_response_ptr, bytes_to_write, std::data(buffer));
-			m_response_ptr += bytes_to_write;
-			m_bytes_to_write -= bytes_to_write;
-			return http_read_resp_result{
-				bytes_to_write,
-				http_req_processing_result{}
-			};
-		}
-
-	private:
-		std::string m_response;
-		char const* m_response_ptr{nullptr};
-		size_t m_bytes_to_write{0};
-	};
-
 	class http_service
 	{
 		using server = std::variant<null_server, resource_server, json_response_server>;

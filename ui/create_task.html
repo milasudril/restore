@@ -43,74 +43,21 @@ let record_description = JSON.parse("{\
 		}\
 	}\
 }");
-
-let types = JSON.parse("{\
-	\"composite\": {\
-		\"planet\": {\
-			\"fields\": {\
-				\"name\": {\
-					\"display\": \"inline\",\
-					\"type\": {\
-						\"category\":\"atom\",\
-						\"name\": \"string\",\
-						\"input_size\": \"short\"\
-					}\
-				},\
-				\"description\": {\
-					\"display\": \"block\",\
-					\"type\": {\
-						\"category\":\"atom\",\
-						\"name\": \"string\",\
-						\"input_size\": \"long\"\
-					}\
-				},\
-				\"mass\": {\
-					\"display\": \"inline\",\
-					\"type\": {\
-						\"category\":\"atom\",\
-						\"name\": \"number\"\
-					}\
-				},\
-				\"radius\": {\
-					\"display\": \"inline\",\
-					\"type\": {\
-						\"category\":\"atom\",\
-						\"name\": \"number\"\
-					}\
-				},\
-				\"type\": {\
-					\"display\": \"inline\",\
-					\"type\": {\
-						\"name\": \"planet_type\",\
-						\"category\": \"enum\"\
-					}\
-				},\
-				\"has_water\": {\
-					\"display\": \"inline\",\
-					\"type\": {\
-						\"name\": \"boolean\",\
-						\"category\": \"atom\"\
-					}\
-				}\
-			}\
-		}\
-	},\
-	\"enum\": {\
-		\"planet_type\": {\
-			\"allowed_values\": {\
-				\"rocky\" : {\
-					\"display_name\": \"Rocky\"\
-				},\
-				\"gas_giant\" : {\
-					\"display_name\": \"Gas giant\"\
-				}\
-			}\
-		}\
-	}\
-}")
 </script>
 
 <script>
+let pending_types = fetch_data("/parameter_types");
+
+window.onload = async function() {
+	let get_parameter_types_result = await pending_types;
+	if(get_parameter_types_result.succeeded)
+	{
+		let types = get_parameter_types_result.message;
+		generate_form(document, document.getElementById("paraminputs"), record_description, types)
+	}
+}
+
+
 function submit_form(event, doc, subform)
 {
 	event.preventDefault();
@@ -138,7 +85,7 @@ function submit_form(event, doc, subform)
 </script>
 
 	</head>
-	<body onload="generate_form(document, paraminputs, record_description, types)">
+	<body>
 	<form onsubmit="return submit_form(event, document, paraminputs);">
 		<h1>Create task</h1>
 		<table>

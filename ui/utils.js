@@ -10,7 +10,7 @@ function find_if(array, predicate)
 
 function fetch_data(url)
 {
-	return fetch("/tasks", {
+	return fetch(url, {
 		headers: {
 			"Accept": "application/json"
 		}

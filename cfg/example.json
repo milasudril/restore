@@ -1,0 +1,22 @@
+{
+	"http_server":
+	{
+		"socket":
+		{
+			"type": "inet",
+			"params":
+			{
+				"remote_address": "127.0.0.1",
+				"server_port_range":
+				{
+					"min": 49152,
+					"max": 65535
+				}
+			}
+		}
+	},
+	"website":
+	{
+		"resource_file": "__targets_rel/ui.wad64"
+	}
+}

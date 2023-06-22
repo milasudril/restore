@@ -8,6 +8,7 @@
 #include "./resource_server.hpp"
 #include "./null_server.hpp"
 #include "./json_response_server.hpp"
+#include "./cached_json_response_server.hpp"
 
 template<>
 struct jopp::object_converter<west::http::status>
@@ -36,7 +37,7 @@ namespace restore
 {
 	class http_service
 	{
-		using server = std::variant<null_server, resource_server, json_response_server>;
+		using server = std::variant<null_server, resource_server, json_response_server, cached_json_response_server>;
 	public:
 		explicit http_service(std::reference_wrapper<resource_file const> res_file,
 			std::reference_wrapper<jopp::container const> param_types):

@@ -142,40 +142,6 @@ jopp::object get_parameter_types()
 
 jopp::object get_task_parameters()
 {
-#if 0
-	"{\
-	\"description\": {\
-		\"display\": \"block\",\
-		\"type\": {\
-			\"category\":\"atom\",\
-			\"name\": \"string\",\
-			\"input_size\": \"long\"\
-		}\
-	},\
-	\"name\": {\
-		\"display\": \"inline\",\
-		\"type\": {\
-			\"category\":\"atom\",\
-			\"name\": \"string\",\
-			\"input_size\": \"short\"\
-		}\
-	},\
-	\"length\": {\
-		\"display\": \"inline\",\
-		\"type\": {\
-			\"category\":\"atom\",\
-			\"name\": \"number\"\
-		}\
-	},\
-	\"home_world\": {\
-		\"display\": \"block\",\
-		\"type\": {\
-			\"category\":\"composite\",\
-			\"name\": \"planet\"\
-		}\
-	}\
-}"
-#endif
 	jopp::object ret{};
 	{
 		jopp::object description{};

@@ -10,50 +10,19 @@ th.row-header{text-align: left}
 	<script src="utils.js"></script>
 	<script src="make_form.js"></script>
 	<script src="serialize_form.js"></script>
-	<script>
-let record_description = JSON.parse("{\
-	\"description\": {\
-		\"display\": \"block\",\
-		\"type\": {\
-			\"category\":\"atom\",\
-			\"name\": \"string\",\
-			\"input_size\": \"long\"\
-		}\
-	},\
-	\"name\": {\
-		\"display\": \"inline\",\
-		\"type\": {\
-			\"category\":\"atom\",\
-			\"name\": \"string\",\
-			\"input_size\": \"short\"\
-		}\
-	},\
-	\"length\": {\
-		\"display\": \"inline\",\
-		\"type\": {\
-			\"category\":\"atom\",\
-			\"name\": \"number\"\
-		}\
-	},\
-	\"home_world\": {\
-		\"display\": \"block\",\
-		\"type\": {\
-			\"category\":\"composite\",\
-			\"name\": \"planet\"\
-		}\
-	}\
-}");
-</script>
 
 <script>
 let pending_types = fetch_data("/parameter_types");
+let pending_params = fetch_data("/task_parameters");
 
 window.onload = async function() {
-	let get_parameter_types_result = await pending_types;
-	if(get_parameter_types_result.succeeded)
+	let get_param_types_result = await pending_types;
+	let get_params_result = await pending_params;
+	if(get_param_types_result.succeeded && get_params_result.succeeded)
 	{
-		let types = get_parameter_types_result.message;
-		generate_form(document, document.getElementById("paraminputs"), record_description, types)
+		let types = get_param_types_result.message;
+		let params = get_params_result.message;
+		generate_form(document, document.getElementById("paraminputs"), params, types)
 	}
 }
 

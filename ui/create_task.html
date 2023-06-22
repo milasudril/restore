@@ -30,12 +30,15 @@ window.onload = async function() {
 function submit_form(event, doc, subform)
 {
 	event.preventDefault();
+	
 	let output_object = {}
-	serialize_form(subform, output_object);
+	output_object.task_name = doc.getElementById("task_name").value;
+	output_object.parameters = {};
+	serialize_form(subform, output_object.parameters);
 
 	let message = JSON.stringify(output_object);
 	let req = new XMLHttpRequest();
-	let task_name = encodeURIComponent(doc.getElementById("task_name").value);
+	let task_name = doc.getElementById("task_name").value;
 	console.log(task_name)
 	req.open("POST", "/tasks", true);
 	req.responseType = "json";

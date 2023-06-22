@@ -26,8 +26,8 @@ int main(int argc, char** argv)
 
 	auto const& website_cfg = cfg.get_field_as<jopp::object>("website");
 	restore::resource_file resources{website_cfg.get_field_as<jopp::string>("resource_file").c_str()};
-
-	jopp::container param_types{};
+	
+	jopp::json_buffer param_types{jopp::container{}};
 
 	west::service_registry services{};
 	enroll_http_service<restore::http_service>(services,

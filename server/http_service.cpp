@@ -22,7 +22,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target == "/parameter_types")
 	{
-		m_current_server = json_response_server{m_param_types};
+		m_current_server = cached_json_response_server{m_param_types};
 		return west::http::finalize_state_result{
 			.http_status = west::http::status::ok,
 			.error_message = nullptr

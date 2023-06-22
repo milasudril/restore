@@ -40,7 +40,7 @@ namespace restore
 		using server = std::variant<null_server, resource_server, json_response_server, cached_json_response_server>;
 	public:
 		explicit http_service(std::reference_wrapper<resource_file const> res_file,
-			std::reference_wrapper<jopp::container const> param_types):
+			jopp::json_buffer_view param_types):
 			m_res_file{res_file},
 			m_param_types{param_types}
 		{ }
@@ -79,7 +79,7 @@ namespace restore
 
 	private:
 		std::reference_wrapper<resource_file const> m_res_file;
-		std::reference_wrapper<jopp::container const> m_param_types;
+ 		jopp::json_buffer_view m_param_types;
 
 		server m_current_server;
 	};

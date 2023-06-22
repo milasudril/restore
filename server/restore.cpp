@@ -142,7 +142,91 @@ jopp::object get_parameter_types()
 
 jopp::object get_task_parameters()
 {
+#if 0
+	"{\
+	\"description\": {\
+		\"display\": \"block\",\
+		\"type\": {\
+			\"category\":\"atom\",\
+			\"name\": \"string\",\
+			\"input_size\": \"long\"\
+		}\
+	},\
+	\"name\": {\
+		\"display\": \"inline\",\
+		\"type\": {\
+			\"category\":\"atom\",\
+			\"name\": \"string\",\
+			\"input_size\": \"short\"\
+		}\
+	},\
+	\"length\": {\
+		\"display\": \"inline\",\
+		\"type\": {\
+			\"category\":\"atom\",\
+			\"name\": \"number\"\
+		}\
+	},\
+	\"home_world\": {\
+		\"display\": \"block\",\
+		\"type\": {\
+			\"category\":\"composite\",\
+			\"name\": \"planet\"\
+		}\
+	}\
+}"
+#endif
 	jopp::object ret{};
+	{
+		jopp::object description{};
+		description.insert("display", "block");
+		{
+			jopp::object type{};
+			type.insert("category", "atom");
+			type.insert("name", "string");
+			type.insert("input_size", "long");
+			description.insert("type", std::move(type));
+		}
+		ret.insert("description", std::move(description));
+	}
+
+	{
+		jopp::object name{};
+		name.insert("display", "inline");
+		{
+			jopp::object type{};
+			type.insert("category", "atom");
+			type.insert("name", "string");
+			type.insert("input_size", "short");
+			name.insert("type", std::move(type));
+		}
+		ret.insert("name", std::move(name));
+	}
+	
+	{
+		jopp::object length{};
+		length.insert("display", "inline");
+		{
+			jopp::object type{};
+			type.insert("category", "atom");
+			type.insert("name", "number");
+			type.insert("input_size", "short");
+			length.insert("type", std::move(type));
+		}
+		ret.insert("length", std::move(length));
+	}
+	
+	{
+		jopp::object home_world{};
+		home_world.insert("display", "block");
+		{
+			jopp::object type{};
+			type.insert("category", "composite");
+			type.insert("name", "planet");
+			home_world.insert("type", std::move(type));
+		}
+		ret.insert("home_world", std::move(home_world));
+	}
 	
 	return ret;
 }

@@ -13,10 +13,10 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target == "/task_parameters")
 	{
-		puts("Get parameter types");
+		m_current_server = cached_json_response_server{m_task_params};
 		return west::http::finalize_state_result{
-			.http_status = west::http::status::not_implemented,
-			.error_message = west::make_unique_cstr("Under construction")
+			.http_status = west::http::status::ok,
+			.error_message = nullptr
 		};
 	}
 

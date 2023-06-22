@@ -40,9 +40,11 @@ namespace restore
 		using server = std::variant<null_server, resource_server, json_response_server, cached_json_response_server>;
 	public:
 		explicit http_service(std::reference_wrapper<resource_file const> res_file,
-			jopp::json_buffer_view param_types):
+			jopp::json_buffer_view param_types,
+			jopp::json_buffer_view task_params):
 			m_res_file{res_file},
-			m_param_types{param_types}
+			m_param_types{param_types},
+			m_task_params{task_params}
 		{ }
 
 		west::http::finalize_state_result finalize_state(west::http::request_header const& header);
@@ -80,6 +82,7 @@ namespace restore
 	private:
 		std::reference_wrapper<resource_file const> m_res_file;
  		jopp::json_buffer_view m_param_types;
+ 		jopp::json_buffer_view m_task_params;
 
 		server m_current_server;
 	};

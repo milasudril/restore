@@ -140,6 +140,13 @@ jopp::object get_parameter_types()
 	return ret;
 }
 
+jopp::object get_task_parameters()
+{
+	jopp::object ret{};
+	
+	return ret;
+}
+
 int main(int argc, char** argv)
 {
 	if(argc < 2)
@@ -160,12 +167,14 @@ int main(int argc, char** argv)
 	restore::resource_file resources{website_cfg.get_field_as<jopp::string>("resource_file").c_str()};
 	
 	jopp::json_buffer param_types{jopp::container{get_parameter_types()}};
+	jopp::json_buffer task_params{jopp::container{get_task_parameters()}};
 
 	west::service_registry services{};
 	enroll_http_service<restore::http_service>(services,
 		std::move(http_socket),
 		std::cref(resources),
-		std::cref(param_types))
+		std::cref(param_types),
+		std::cref(task_params))
 		.process_events();
 
 

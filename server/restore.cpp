@@ -213,8 +213,8 @@ int main(int argc, char** argv)
 	printf("Listening on port %u\n", http_socket.port());
 	fflush(stdout);
 
-	auto const& website_cfg = cfg.get_field_as<jopp::object>("website");
-	restore::resource_file resources{website_cfg.get_field_as<jopp::string>("resource_file").c_str()};
+	auto const& resfile = cfg.get_field_as<jopp::object>("resource_file_path");
+	restore::resource_file resources{resfile.get_field_as<jopp::string>("value").c_str()};
 	
 	jopp::json_buffer param_types{jopp::container{get_parameter_types()}};
 	jopp::json_buffer task_params{jopp::container{get_task_parameters()}};

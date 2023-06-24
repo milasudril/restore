@@ -15,8 +15,12 @@
 			}
 		}
 	},
-	"website":
+	"resource_file_path":
 	{
-		"resource_file": "__targets_rel/ui.wad64"
+		"value": "__targets_rel/ui.wad64"
+	},
+	"storage_file_path": 
+	{
+		"value": "restore_tasks.wad64"
 	}
 }

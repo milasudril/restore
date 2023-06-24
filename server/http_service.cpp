@@ -73,9 +73,11 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 		};
 	}
 
-	auto res = serve_resource(header, m_res_file);
-	if(res.second.has_value())
-	{ m_current_server = std::move(*res.second); }
+	{
+		auto [retval, server] = serve_resource(header, m_res_file);
+		if(server.has_value())
+		{ m_current_server = std::move(*server); }
 
-	return std::move(res.first);
+		return retval;
+	}
 }

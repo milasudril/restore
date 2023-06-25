@@ -8,6 +8,7 @@
 
 #include <west/service_registry.hpp>
 #include <west/http_server.hpp>
+#include <west/io_signal_fd.hpp>
 
 jopp::object get_parameter_types()
 {
@@ -198,6 +199,15 @@ jopp::object get_task_parameters()
 	return ret;
 }
 
+struct signal_handler
+{
+	void fd_is_ready(auto event_monitor, west::io::fd_ref) const
+	{ event_monitor.clear(); }
+	
+	void fd_is_idle(auto, west::io::fd_ref) const
+	{}
+};
+
 int main(int argc, char** argv)
 {
 	if(argc < 2)
@@ -229,8 +239,10 @@ int main(int argc, char** argv)
 		std::cref(resources),
 		std::cref(param_types),
 		std::cref(task_params))
+		.enroll(west::io::signal_fd{west::io::make_sigmask(SIGINT, SIGTERM)}, signal_handler{})
 		.process_events();
 
+	printf("Server is shutting down\n");
 
 	return 0;
 }

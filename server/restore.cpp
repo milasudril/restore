@@ -10,6 +10,8 @@
 #include <west/http_server.hpp>
 #include <west/io_signal_fd.hpp>
 
+#include <thread>
+
 jopp::object get_parameter_types()
 {
 	// Set dummy data for testing purpose
@@ -221,9 +223,6 @@ int main(int argc, char** argv)
 	auto const& http_server_socket_cfg = http_cfg.get_field_as<jopp::object>("socket");
 	auto http_socket = restore::create_server_socket(http_server_socket_cfg);
 
-	printf("Listening on port %u\n", http_socket.port());
-	fflush(stdout);
-
 	auto const& resource_file_path = cfg.get_field_as<jopp::object>("resource_file_path");
 	restore::resource_file resources{resource_file_path.get_field_as<jopp::string>("value").c_str()};
 	
@@ -233,16 +232,21 @@ int main(int argc, char** argv)
 	jopp::json_buffer param_types{jopp::container{get_parameter_types()}};
 	jopp::json_buffer task_params{jopp::container{get_task_parameters()}};
 
+	std::string key{};
+	
 	west::service_registry services{};
 	enroll_http_service<restore::http_service>(services,
 		std::move(http_socket),
 		std::cref(resources),
 		std::cref(param_types),
 		std::cref(task_params))
-		.enroll(west::io::signal_fd{west::io::make_sigmask(SIGINT, SIGTERM)}, signal_handler{})
-		.process_events();
+		.enroll(west::io::signal_fd{west::io::make_sigmask(SIGINT, SIGTERM)}, signal_handler{});
 
-	printf("Server is shutting down\n");
+	// TODO: replace localhost with something more generig (ip address or host name)
+	printf("The Restore application is available from http://localhost:%u. You may manage tasks by "
+		"opening this URL in your favorite browser. Using CTRL+LMB works in most graphical TTY:s. Your "
+		"key for this session is\n%s\n", http_socket.port(), key.c_str());
+	services.process_events();
 
 	return 0;
 }

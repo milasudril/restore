@@ -36,7 +36,7 @@ jopp::object get_parameter_types()
 					}
 					fields.insert("name", std::move(name));
 				}
-				
+
 				{
 					jopp::object description{};
 					{
@@ -51,7 +51,7 @@ jopp::object get_parameter_types()
 					}
 					fields.insert("description", std::move(description));
 				}
-				
+
 				{
 					jopp::object mass{};
 					{
@@ -66,7 +66,7 @@ jopp::object get_parameter_types()
 					}
 					fields.insert("mass", std::move(mass));
 				}
-				
+
 				{
 					jopp::object radius{};
 					{
@@ -81,7 +81,7 @@ jopp::object get_parameter_types()
 					}
 					fields.insert("radius", std::move(radius));
 				}
-				
+
 				{
 					jopp::object planet_type{};
 					{
@@ -95,7 +95,7 @@ jopp::object get_parameter_types()
 					}
 					fields.insert("type", std::move(planet_type));
 				}
-				
+
 				{
 					jopp::object has_water{};
 					{
@@ -109,14 +109,14 @@ jopp::object get_parameter_types()
 					}
 					fields.insert("has_water", std::move(has_water));
 				}
-				
+
 				planet.insert("fields", std::move(fields));
 			}
 			composite.insert("planet", std::move(planet));
 		}
 		ret.insert("composite", std::move(composite));
 	}
-	
+
 	{
 		jopp::object enumlist{};
 		{
@@ -128,7 +128,7 @@ jopp::object get_parameter_types()
 					rocky.insert("display_name", "Rocky");
 					allowed_values.insert("rocky", std::move(rocky));
 				}
-				
+
 				{
 					jopp::object gas_giant{};
 					gas_giant.insert("display_name", "Gas giant");
@@ -140,7 +140,7 @@ jopp::object get_parameter_types()
 		}
 		ret.insert("enum", std::move(enumlist));
 	}
-	
+
 	return ret;
 }
 
@@ -172,7 +172,7 @@ jopp::object get_task_parameters()
 		}
 		ret.insert("name", std::move(name));
 	}
-	
+
 	{
 		jopp::object length{};
 		length.insert("display", "inline");
@@ -185,7 +185,7 @@ jopp::object get_task_parameters()
 		}
 		ret.insert("length", std::move(length));
 	}
-	
+
 	{
 		jopp::object home_world{};
 		home_world.insert("display", "block");
@@ -197,7 +197,7 @@ jopp::object get_task_parameters()
 		}
 		ret.insert("home_world", std::move(home_world));
 	}
-	
+
 	return ret;
 }
 
@@ -205,9 +205,35 @@ struct signal_handler
 {
 	void fd_is_ready(auto event_monitor, west::io::fd_ref) const
 	{ event_monitor.clear(); }
-	
+
 	void fd_is_idle(auto, west::io::fd_ref) const
 	{}
+};
+
+std::string generate_session_key()
+{
+	auto random = west::io::open("/dev/urandom", 0);
+	std::array<char, 1024> buffer{};
+	if(read(random.get(), std::data(buffer), std::size(buffer)) != 1024)
+	{ throw std::runtime_error{"Failed to generate a session key"}; }
+
+	auto to_hex_digit = [](auto nibble) {
+		return static_cast<char>(nibble < 10 ? nibble + '0' : (nibble - 10 ) + 'A');
+	};
+
+	std::string ret{};
+
+	for(size_t k = 0; k != std::size(buffer); ++k)
+	{
+		auto const msb = (0xf0 & buffer[k]) >> 4;
+		auto const lsb = 0x0f & buffer[k];
+
+		ret.push_back(to_hex_digit(msb));
+		ret.push_back(to_hex_digit(lsb));
+	}
+
+	return ret;
+
 };
 
 int main(int argc, char** argv)
@@ -225,15 +251,15 @@ int main(int argc, char** argv)
 
 	auto const& resource_file_path = cfg.get_field_as<jopp::object>("resource_file_path");
 	restore::resource_file resources{resource_file_path.get_field_as<jopp::string>("value").c_str()};
-	
+
 	auto const& storage_file_path = cfg.get_field_as<jopp::object>("storage_file_path");
 	restore::storage_file storage{storage_file_path.get_field_as<jopp::string>("value").c_str()};
-	
+
 	jopp::json_buffer param_types{jopp::container{get_parameter_types()}};
 	jopp::json_buffer task_params{jopp::container{get_task_parameters()}};
 
-	std::string key{};
-	
+	auto const key = generate_session_key();;
+
 	west::service_registry services{};
 	enroll_http_service<restore::http_service>(services,
 		std::move(http_socket),

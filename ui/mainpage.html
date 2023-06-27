@@ -7,8 +7,8 @@
 * { outline: 1px solid red; }
 th.row-header{text-align: left}
 	</style>
-	<script src="ui/utils.js"></script>
-	<script src="ui/make_task_list.js"></script>
+	<script src="utils.js"></script>
+	<script src="make_task_list.js"></script>
 	<script>
 let pending_task_list = fetch_data("/tasks");
 
@@ -22,7 +22,7 @@ window.onload = async function() {
 	<header><h1>Mainpage</h1></header>
 	<main>
 		<section><h1>Tasks</h1>
-			<p><a href="ui/create_task.html">Create new task</a></p>
+			<p><a href="create_task.html">Create new task</a></p>
 			<table id="tasklist">
 			</table>
 		</section>

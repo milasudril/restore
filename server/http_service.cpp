@@ -4,6 +4,27 @@
 
 namespace
 {
+	auto serve_mainpage(west::http::request_header const& header)
+	{
+		if(header.request_line.method != "GET")
+		{
+
+			return std::pair{west::http::finalize_state_result{
+				.http_status = west::http::status::method_not_allowed,
+				.error_message = west::make_unique_cstr("Endpoint only supports method GET"),
+			}, std::optional<restore::redirect_server>{}};
+		}
+
+		// TODO: If not logged in, redirect to login page
+		return std::pair{
+			west::http::finalize_state_result {
+				.http_status = west::http::status::ok,
+				.error_message = nullptr,
+			},
+			std::optional{restore::redirect_server{"/ui/mainpage.html"}}
+		};
+	}
+
 	auto serve_resource(west::http::request_header const& header, jopp::json_buffer_view content)
 	{
 		if(header.request_line.method != "GET")
@@ -82,6 +103,15 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	printf("%s %s\n", req_method.value().data(),
 		req_target.value().data());
+
+	if(req_target == "/")
+	{
+		auto [retval, server] = serve_mainpage(header);
+		if(server.has_value())
+		{ m_current_server = std::move(*server); }
+
+		return retval;
+	}
 
 	if(req_target == "/login")
 	{

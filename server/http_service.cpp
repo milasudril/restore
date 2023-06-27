@@ -21,12 +21,27 @@ namespace
 			.error_message = west::make_unique_cstr("Endpoint only supports method GET"),
 		}, std::optional<restore::cached_json_response_server>{}};
 	}
-	
+
 	auto serve_task_parameters(west::http::request_header const& header, jopp::json_buffer_view content)
 	{ return serve_resource(header, content); }
-	
+
 	auto serve_parameter_types(west::http::request_header const& header, jopp::json_buffer_view content)
 	{ return serve_resource(header, content); }
+
+	auto serve_login_request(west::http::request_header const& header)
+	{
+		if(header.request_line.method == "POST")
+		{
+			return std::pair{west::http::finalize_state_result{
+			.http_status = west::http::status::not_implemented,
+			.error_message = west::make_unique_cstr("Not implemented"),
+			}, std::optional<restore::login_request_server>{}};
+		}
+		return std::pair{west::http::finalize_state_result{
+			.http_status = west::http::status::method_not_allowed,
+			.error_message = west::make_unique_cstr("Endpoint only supports method POST"),
+		}, std::optional<restore::login_request_server>{}};
+	}
 }
 
 west::http::finalize_state_result restore::http_service::finalize_state(west::http::request_header const& header)
@@ -37,12 +52,21 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 	printf("%s %s\n", req_method.value().data(),
 		req_target.value().data());
 
+	if(req_target == "/login")
+	{
+		auto [retval, server] = serve_login_request(header);
+		if(server.has_value())
+		{ m_current_server = std::move(*server); }
+
+		return retval;
+	}
+
 	if(req_target == "/task_parameters")
 	{
 		auto [retval, server] = serve_task_parameters(header, m_task_params);
 		if(server.has_value())
 		{ m_current_server = std::move(*server); }
-		
+
 		return retval;
 	}
 
@@ -51,7 +75,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 		auto [retval, server] = serve_parameter_types(header, m_param_types);
 		if(server.has_value())
 		{ m_current_server = std::move(*server); }
-		
+
 		return retval;
 	}
 

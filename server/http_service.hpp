@@ -5,6 +5,7 @@
 
 #include "./json_loaders.hpp"
 #include "./resource_file.hpp"
+#include "./storage_file.hpp"
 #include "./resource_server.hpp"
 #include "./null_server.hpp"
 #include "./json_response_server.hpp"
@@ -40,9 +41,11 @@ namespace restore
 		using server = std::variant<null_server, resource_server, json_response_server, cached_json_response_server>;
 	public:
 		explicit http_service(std::reference_wrapper<resource_file const> res_file,
+			std::reference_wrapper<storage_file> storage,
 			jopp::json_buffer_view param_types,
 			jopp::json_buffer_view task_params):
 			m_res_file{res_file},
+			m_storage_file{storage},
 			m_param_types{param_types},
 			m_task_params{task_params}
 		{ }
@@ -81,6 +84,7 @@ namespace restore
 
 	private:
 		std::reference_wrapper<resource_file const> m_res_file;
+		std::reference_wrapper<storage_file> m_storage_file;
  		jopp::json_buffer_view m_param_types;
  		jopp::json_buffer_view m_task_params;
 

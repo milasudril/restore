@@ -258,12 +258,13 @@ int main(int argc, char** argv)
 	jopp::json_buffer param_types{jopp::container{get_parameter_types()}};
 	jopp::json_buffer task_params{jopp::container{get_task_parameters()}};
 
-	auto const key = generate_session_key();;
+	auto const key = generate_session_key();
 
 	west::service_registry services{};
 	enroll_http_service<restore::http_service>(services,
 		std::move(http_socket),
 		std::cref(resources),
+		std::ref(storage),
 		std::cref(param_types),
 		std::cref(task_params))
 		.enroll(west::io::signal_fd{west::io::make_sigmask(SIGINT, SIGTERM)}, signal_handler{});

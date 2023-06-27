@@ -39,6 +39,14 @@ namespace restore
 			};
 		}
 
+		auto process_request_content(std::span<char const> buffer)
+		{
+			return http_write_req_result{
+				.bytes_written = std::size(buffer),
+				.ec = http_req_processing_result{}
+			};
+		}
+
 	private:
 		char const* m_response_ptr;
 		size_t m_bytes_to_write;

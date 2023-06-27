@@ -24,6 +24,14 @@ namespace restore
 				http_req_processing_result{}
 			};
 		}
+
+		auto process_request_content(std::span<char const> buffer)
+		{
+			return http_write_req_result{
+				.bytes_written = std::size(buffer),
+				.ec = http_req_processing_result{}
+			};
+		}
 	};
 }
 

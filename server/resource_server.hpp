@@ -40,6 +40,14 @@ namespace restore
 			};
 		}
 
+		auto process_request_content(std::span<char const> buffer)
+		{
+			return http_write_req_result{
+				.bytes_written = std::size(buffer),
+				.ec = http_req_processing_result{}
+			};
+		}
+
 	private:
 		Wad64::InputFile m_input_file;
 		resource_info m_resource_info;

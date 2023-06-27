@@ -57,10 +57,9 @@ namespace restore
 
 		auto process_request_content(std::span<char const> buffer)
 		{
-			return http_write_req_result{
-				.bytes_written = std::size(buffer),
-				.ec = http_req_processing_result{}
-			};
+			return std::visit([buffer](auto& server){
+				return server.process_request_content(buffer);
+			}, m_current_server);
 		}
 
 		auto finalize_state(west::http::field_map& fields)

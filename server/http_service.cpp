@@ -125,11 +125,7 @@ namespace
 
 west::http::finalize_state_result restore::http_service::finalize_state(west::http::request_header const& header)
 {
-	auto const& req_method = header.request_line.method;
 	auto const& req_target = header.request_line.request_target;
-
-	printf("%s %s\n", req_method.value().data(),
-		req_target.value().data());
 
 	if(req_target == "/")
 	{

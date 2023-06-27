@@ -18,7 +18,7 @@ namespace restore
 			m_session_info_parser{*m_session_info},
 			m_resp_ptr{nullptr},
 			m_bytes_to_read{0}
-		{}
+		{ }
 
 		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
 		{ return std::strong_ordering::equal; }
@@ -46,7 +46,6 @@ namespace restore
 
 					return west::http::finalize_state_result{};
 				}
-
 
 				jopp::object resp_obj{};
 				resp_obj.insert("result", "successful");

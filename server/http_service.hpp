@@ -45,6 +45,12 @@ namespace restore
 	public:
 		explicit http_service(std::reference_wrapper<resource_file const> res_file,
 			std::reference_wrapper<storage_file> storage,
+			std::string const& session_key,
+			jopp::json_buffer_view param_types,
+			jopp::json_buffer_view task_params) = delete;
+
+		explicit http_service(std::reference_wrapper<resource_file const> res_file,
+			std::reference_wrapper<storage_file> storage,
 			std::string_view session_key,
 			jopp::json_buffer_view param_types,
 			jopp::json_buffer_view task_params):

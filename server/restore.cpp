@@ -213,8 +213,8 @@ struct signal_handler
 std::string generate_session_key()
 {
 	auto random = west::io::open("/dev/urandom", 0);
-	std::array<char, 1024> buffer{};
-	if(read(random.get(), std::data(buffer), std::size(buffer)) != 1024)
+	std::array<char, 32> buffer{};
+	if(::read(random.get(), std::data(buffer), std::size(buffer)) != 32)
 	{ throw std::runtime_error{"Failed to generate a session key"}; }
 
 	auto to_hex_digit = [](auto nibble) {
@@ -265,7 +265,7 @@ int main(int argc, char** argv)
 		std::move(http_socket),
 		std::cref(resources),
 		std::ref(storage),
-		session_key,
+		std::string_view{session_key},
 		std::cref(param_types),
 		std::cref(task_params))
 		.enroll(west::io::signal_fd{west::io::make_sigmask(SIGINT, SIGTERM)}, signal_handler{});

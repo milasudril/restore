@@ -24,6 +24,8 @@ namespace restore
 				http_req_processing_result{}
 			};
 		}
+
+		std::string_view session_key;
 	};
 }
 

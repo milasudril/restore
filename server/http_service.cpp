@@ -28,14 +28,14 @@ namespace
 	auto serve_parameter_types(west::http::request_header const& header, jopp::json_buffer_view content)
 	{ return serve_resource(header, content); }
 
-	auto serve_login_request(west::http::request_header const& header)
+	auto serve_login_request(west::http::request_header const& header, std::string_view session_key)
 	{
 		if(header.request_line.method == "POST")
 		{
 			return std::pair{west::http::finalize_state_result{
-			.http_status = west::http::status::not_implemented,
-			.error_message = west::make_unique_cstr("Not implemented"),
-			}, std::optional<restore::login_request_server>{}};
+			.http_status = west::http::status::ok,
+			.error_message = nullptr,
+			}, std::optional{restore::login_request_server{session_key}}};
 		}
 		return std::pair{west::http::finalize_state_result{
 			.http_status = west::http::status::method_not_allowed,
@@ -54,7 +54,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target == "/login")
 	{
-		auto [retval, server] = serve_login_request(header);
+		auto [retval, server] = serve_login_request(header, m_session_key);
 		if(server.has_value())
 		{ m_current_server = std::move(*server); }
 

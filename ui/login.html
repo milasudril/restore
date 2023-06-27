@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta charset="UTF-8">
+	<title>restore/Log in</title>
+	<style>
+* { outline: 1px solid red; }
+th.row-header{text-align: left}
+	</style>
+	<script src="utils.js"></script>
+	<script src="serialize_form.js"></script>
+	<script>
+function submit_form(event, doc, subform)
+{
+	event.preventDefault();
+
+	let output_object = {}
+	serialize_form(subform, output_object);
+
+	let message = JSON.stringify(output_object);
+	console.log(message);
+
+	let req = new XMLHttpRequest();
+	req.open("POST", "/login", true);
+	req.responseType = "json";
+	req.setRequestHeader("Accept", "application/json");
+	req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+	req.onreadystatechange = function() {
+		if(this.readyState == 4)
+		{
+			console.log(this.response);
+		}
+	};
+	req.send(message);
+
+	return false;
+}
+	</script>
+	</head>
+	<body>
+		<h1>Restore login</h1>
+		<form onsubmit="return submit_form(event, document, loginparams);">
+			<section id="loginparams">
+				<section field-name="session_key" field-type-name="string" field-type-category="atom">
+					<h1>Session key</h1>
+					<textarea rows="8"></textarea>
+				</section>
+			</section>
+			<nav id="formactions">
+				<ul>
+					<li><input type="submit" value="Enter"></li>
+				</ul>
+			</nav>
+		</form>
+	</body>
+</html>
+
+

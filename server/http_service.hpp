@@ -88,7 +88,6 @@ namespace restore
 		std::reference_wrapper<resource_file const> m_res_file;
 		std::reference_wrapper<storage_file> m_storage_file;
 		std::string_view m_session_key;
-		jopp::container m_session_info;
  		jopp::json_buffer_view m_param_types;
  		jopp::json_buffer_view m_task_params;
 

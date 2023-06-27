@@ -12,11 +12,10 @@ namespace restore
 	class login_request_server
 	{
 	public:
-		explicit login_request_server(std::string_view session_key,
-			jopp::container& session_info):
+		explicit login_request_server(std::string_view session_key):
 			m_session_key{session_key},
-			m_session_info{session_info},
-			m_session_info_parser{session_info}
+			m_session_info{std::make_unique<jopp::container>()},
+			m_session_info_parser{*m_session_info}
 		{}
 
 		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
@@ -24,7 +23,7 @@ namespace restore
 
 		auto finalize_state(west::http::field_map& fields) const
 		{
-			fields.append("Content-Length", "0");
+			fields.append("Content-Length", "0")
 			puts("Finalize before read response");
 			return west::http::finalize_state_result{};
 		}
@@ -58,7 +57,7 @@ namespace restore
 
 	private:
 		std::string_view m_session_key;
-		std::reference_wrapper<jopp::container> m_session_info;
+		std::unique_ptr<jopp::container> m_session_info;
 		jopp::parser m_session_info_parser;
 	};
 }

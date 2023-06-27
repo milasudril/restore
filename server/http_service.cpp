@@ -29,10 +29,7 @@ namespace
 	auto serve_parameter_types(west::http::request_header const& header, jopp::json_buffer_view content)
 	{ return serve_resource(header, content); }
 
-	auto serve_login_request(west::http::request_header const& header,
-		std::string_view session_key,
-		jopp::container& session_info
-	)
+	auto serve_login_request(west::http::request_header const& header, std::string_view session_key)
 	{
 		if(header.request_line.method != "POST")
 		{
@@ -73,7 +70,7 @@ namespace
 				.http_status = west::http::status::ok,
 				.error_message = nullptr,
 			},
-			std::optional{restore::login_request_server{session_key, session_info}}
+			std::optional{restore::login_request_server{session_key}}
 		};
 	}
 }
@@ -88,7 +85,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target == "/login")
 	{
-		auto [retval, server] = serve_login_request(header, m_session_key, m_session_info);
+		auto [retval, server] = serve_login_request(header, m_session_key);
 		if(server.has_value())
 		{ m_current_server = std::move(*server); }
 

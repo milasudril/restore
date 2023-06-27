@@ -25,7 +25,7 @@ namespace restore
 		{
 			fields.append("Content-Length", "0");
 			fields.append("Set-Cookie", "session_key=foobar;SameSite=Strict;HttpOnly");
-			puts("Finalize before read response");
+
 			return west::http::finalize_state_result{};
 		}
 

@@ -54,8 +54,12 @@ namespace restore
 				m_resp_ptr = std::data(m_response);
 				m_bytes_to_read = std::size(m_response);
 
-				fields.append("Content-Length", std::to_string(m_bytes_to_read));
-				fields.append("Set-Cookie", "session_key=foobar;SameSite=Strict;HttpOnly");
+				std::string cookie_value{"session_key="};
+				cookie_value.append(m_session_key)
+					.append(";SameSite=Strict;HttpOnly");
+
+				fields.append("Content-Length", std::to_string(m_bytes_to_read))
+					.append("Set-Cookie", std::move(cookie_value));
 
 				return west::http::finalize_state_result{};
 			}

@@ -258,13 +258,14 @@ int main(int argc, char** argv)
 	jopp::json_buffer param_types{jopp::container{get_parameter_types()}};
 	jopp::json_buffer task_params{jopp::container{get_task_parameters()}};
 
-	auto const key = generate_session_key();
+	auto const session_key = generate_session_key();
 
 	west::service_registry services{};
 	enroll_http_service<restore::http_service>(services,
 		std::move(http_socket),
 		std::cref(resources),
 		std::ref(storage),
+		session_key,
 		std::cref(param_types),
 		std::cref(task_params))
 		.enroll(west::io::signal_fd{west::io::make_sigmask(SIGINT, SIGTERM)}, signal_handler{});
@@ -272,7 +273,7 @@ int main(int argc, char** argv)
 	// TODO: replace localhost with something more generig (ip address or host name)
 	printf("The Restore application is available from http://localhost:%u. You may manage tasks by "
 		"opening this URL in your favorite browser. Using CTRL+LMB works in most graphical TTY:s. Your "
-		"key for this session is\n%s\n", http_socket.port(), key.c_str());
+		"key for this session is\n%s\n", http_socket.port(), session_key.c_str());
 	services.process_events();
 
 	return 0;

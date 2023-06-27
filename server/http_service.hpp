@@ -42,10 +42,12 @@ namespace restore
 	public:
 		explicit http_service(std::reference_wrapper<resource_file const> res_file,
 			std::reference_wrapper<storage_file> storage,
+			std::string_view session_key,
 			jopp::json_buffer_view param_types,
 			jopp::json_buffer_view task_params):
 			m_res_file{res_file},
 			m_storage_file{storage},
+			m_session_key{session_key},
 			m_param_types{param_types},
 			m_task_params{task_params}
 		{ }
@@ -85,6 +87,7 @@ namespace restore
 	private:
 		std::reference_wrapper<resource_file const> m_res_file;
 		std::reference_wrapper<storage_file> m_storage_file;
+		std::string_view m_session_key;
  		jopp::json_buffer_view m_param_types;
  		jopp::json_buffer_view m_task_params;
 

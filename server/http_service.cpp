@@ -6,20 +6,21 @@ namespace
 {
 	auto serve_resource(west::http::request_header const& header, jopp::json_buffer_view content)
 	{
-		if(header.request_line.method == "GET")
+		if(header.request_line.method != "GET")
 		{
-			return std::pair{
-				west::http::finalize_state_result {
-					.http_status = west::http::status::ok,
-					.error_message = nullptr,
-				},
-				std::optional{restore::cached_json_response_server{content}}
-			};
+			return std::pair{west::http::finalize_state_result{
+				.http_status = west::http::status::method_not_allowed,
+				.error_message = west::make_unique_cstr("Endpoint only supports method GET"),
+			}, std::optional<restore::cached_json_response_server>{}};
 		}
-		return std::pair{west::http::finalize_state_result{
-			.http_status = west::http::status::method_not_allowed,
-			.error_message = west::make_unique_cstr("Endpoint only supports method GET"),
-		}, std::optional<restore::cached_json_response_server>{}};
+
+		return std::pair{
+			west::http::finalize_state_result {
+				.http_status = west::http::status::ok,
+				.error_message = nullptr,
+			},
+			std::optional{restore::cached_json_response_server{content}}
+		};
 	}
 
 	auto serve_task_parameters(west::http::request_header const& header, jopp::json_buffer_view content)
@@ -30,17 +31,47 @@ namespace
 
 	auto serve_login_request(west::http::request_header const& header, std::string_view session_key)
 	{
-		if(header.request_line.method == "POST")
+		if(header.request_line.method != "POST")
 		{
-			return std::pair{west::http::finalize_state_result{
-			.http_status = west::http::status::ok,
-			.error_message = nullptr,
-			}, std::optional{restore::login_request_server{session_key}}};
+			return std::pair{
+				west::http::finalize_state_result{
+					.http_status = west::http::status::method_not_allowed,
+					.error_message = west::make_unique_cstr("Endpoint only supports method POST"),
+				},
+				std::optional<restore::login_request_server>{}
+			};
 		}
-		return std::pair{west::http::finalize_state_result{
-			.http_status = west::http::status::method_not_allowed,
-			.error_message = west::make_unique_cstr("Endpoint only supports method POST"),
-		}, std::optional<restore::login_request_server>{}};
+
+		auto const i = header.fields.find("content-type");
+		if(i == std::end(header.fields))
+		{
+			return std::pair{
+				west::http::finalize_state_result{
+					.http_status = west::http::status::bad_request,
+					.error_message = west::make_unique_cstr("Content-Type is missing"),
+				},
+				std::optional<restore::login_request_server>{}
+			};
+		}
+
+		if(i->second != "application/json;charset=UTF-8")
+		{
+			return std::pair{
+				west::http::finalize_state_result{
+					.http_status = west::http::status::bad_request,
+					.error_message = west::make_unique_cstr("Bad content-type"),
+				},
+				std::optional<restore::login_request_server>{}
+			};
+		}
+
+		return std::pair{
+			west::http::finalize_state_result{
+				.http_status = west::http::status::ok,
+				.error_message = nullptr,
+			},
+			std::optional{restore::login_request_server{session_key}}
+		};
 	}
 }
 

@@ -28,6 +28,10 @@ function submit_form(event, doc, subform)
 	req.onreadystatechange = function() {
 		if(this.readyState == 4)
 		{
+			if(this.response.result === "successful")
+			{ window.location.href = "mainpage.html"; }
+			else
+			{ window.alert("Invalid session key. Try with a different key."); }
 			console.log(this.response);
 		}
 	};

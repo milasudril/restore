@@ -25,17 +25,48 @@ namespace restore
 
 		auto finalize_state(west::http::field_map& fields)
 		{
-			jopp::object resp_obj{};
-			resp_obj.insert("result", "successful");
+			try
+			{
+				auto obj = m_session_info->template get_if<jopp::object>();
+				if(obj == nullptr)
+				{ throw std::runtime_error{"Expected login request to be an object"}; }
 
-			m_response = to_string(jopp::container{std::move(resp_obj)});
-			m_resp_ptr = std::data(m_response);
-			m_bytes_to_read = std::size(m_response);
+				auto const& session_key = obj->get_field_as<jopp::string>("session_key");
+				if(session_key != m_session_key)
+				{
+					jopp::object resp_obj{};
+					resp_obj.insert("result", "failed");
+					resp_obj.insert("cause", "Invalid session key");
 
-			fields.append("Content-Length", std::to_string(m_bytes_to_read));
-			fields.append("Set-Cookie", "session_key=foobar;SameSite=Strict;HttpOnly");
+					m_response = to_string(jopp::container{std::move(resp_obj)});
+					m_resp_ptr = std::data(m_response);
+					m_bytes_to_read = std::size(m_response);
 
-			return west::http::finalize_state_result{};
+					fields.append("Content-Length", std::to_string(m_bytes_to_read));
+
+					return west::http::finalize_state_result{};
+				}
+
+
+				jopp::object resp_obj{};
+				resp_obj.insert("result", "successful");
+
+				m_response = to_string(jopp::container{std::move(resp_obj)});
+				m_resp_ptr = std::data(m_response);
+				m_bytes_to_read = std::size(m_response);
+
+				fields.append("Content-Length", std::to_string(m_bytes_to_read));
+				fields.append("Set-Cookie", "session_key=foobar;SameSite=Strict;HttpOnly");
+
+				return west::http::finalize_state_result{};
+			}
+			catch(std::runtime_error const& error)
+			{
+				return west::http::finalize_state_result{
+					.http_status = west::http::status::bad_request,
+					.error_message = west::make_unique_cstr(error.what())
+				};
+			}
 		}
 
 		auto read_response_content(std::span<char> buffer)

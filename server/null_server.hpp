@@ -13,7 +13,10 @@ namespace restore
 		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
 		{ return std::strong_ordering::equal; }
 
-		auto finalize_state(west::http::field_map&) const {
+		auto finalize_state(west::http::field_map& fields) const
+		{
+			fields.append("Content-Length", "0");
+
 			return west::http::finalize_state_result{};
 		}
 

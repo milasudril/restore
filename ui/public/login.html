@@ -10,8 +10,18 @@ th.row-header{text-align: left}
 	<script src="utils.js"></script>
 	<script src="serialize_form.js"></script>
 	<script>
-console.log("Hej");
-console.log(document.cookie);
+
+function get_redirect()
+{
+	let cookies = get_cookies(document.cookie);
+	if(cookies.redirected_from)
+	{ return cookies.redirected_from; }
+
+	return "../restricted/mainpage.html";
+}
+
+let redirect_to = get_redirect();
+clear_cookie(document, "redirected_from", location.hostname);
 
 function submit_form(event, doc, subform)
 {
@@ -32,7 +42,7 @@ function submit_form(event, doc, subform)
 		if(this.readyState == 4)
 		{
 			if(this.response.result === "successful")
-			{ window.location.href = "mainpage.html"; }
+			{ window.location.href = redirect_to; }
 			else
 			{ window.alert("Invalid session key. Try with a different key."); }
 			console.log(this.response);

@@ -21,3 +21,24 @@ function fetch_data(url)
 		return {succeeded: data.succeeded, message: message};
 	});
 }
+
+function get_cookies(cookie_string)
+{
+	let elems = cookie_string.split("; ");
+	let ret = {};
+	for(let item in elems)
+	{
+		let parts = elems[item].split("=");
+		if(parts.length == 2)
+		{
+			ret[parts[0]] = parts[1];
+		}
+	}
+
+	return ret;
+}
+
+function clear_cookie(doc, name, hostname)
+{
+	doc.cookie = name + "=; Max-Age=0; SameSite=Strict; path=/; domain=" + hostname;
+}

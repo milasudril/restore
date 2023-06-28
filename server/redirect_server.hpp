@@ -10,9 +10,11 @@ namespace restore
 	class redirect_server
 	{
 	public:
-		explicit redirect_server(std::string_view uri,
+		explicit redirect_server(std::string_view to_uri,
+			std::string_view from_uri = std::string_view{},
 			west::http::status redirect_status = west::http::status::moved_permanently):
-			m_uri{uri},
+			m_to_uri{to_uri},
+			m_from_uri{from_uri},
 			m_redirect_status{redirect_status}
 		{}
 
@@ -21,8 +23,18 @@ namespace restore
 
 		auto finalize_state(west::http::field_map& fields) const
 		{
+
 			fields.append("Content-Length", "0")
-				.append("Location", std::string{m_uri});
+				.append("Location", std::string{m_to_uri});
+
+			if(!m_from_uri.empty())
+			{
+				std::string from_uri_cookie{"redirected_from="};
+				from_uri_cookie.append(m_from_uri)
+					.append(";Same-Site=Strict");
+				fields.append("Set-Cookie", std::move(from_uri_cookie));
+			}
+
 			return west::http::finalize_state_result{
 				.http_status = m_redirect_status,
 				.error_message = nullptr
@@ -47,7 +59,8 @@ namespace restore
 		}
 
 	private:
-		std::string_view m_uri;
+		std::string_view m_to_uri;
+		std::string_view m_from_uri;
 		west::http::status m_redirect_status;
 	};
 }

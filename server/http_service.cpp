@@ -133,18 +133,24 @@ namespace
 		return std::string_view{};
 	}
 
-	auto login_is_valid(west::http::request_header const& header,
-		std::string_view session_key)
+	auto get_cookies(west::http::request_header const& header)
 	{
 		auto i = header.fields.find("Cookie");
 		if(i == std::end(header.fields))
-		{ return false; }
+		{ return west::http::cookie_store{}; }
 
 		west::http::cookie_store cookies;
 		auto const res = west::http::parse_cookie_string(i->second, cookies);
 		if(res.ec != west::http::cookie_string_parser_error_code::no_error)
-		{ return false; }
+		{ return west::http::cookie_store{}; }
 
+		return cookies;
+	}
+
+	auto login_is_valid(west::http::request_header const& header,
+		std::string_view session_key)
+	{
+		auto cookies = get_cookies(header);
 		auto const keyval = cookies.find("session_key");
 		if(keyval == std::end(cookies))
 		{ return false; }

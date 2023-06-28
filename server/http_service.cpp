@@ -31,7 +31,7 @@ namespace
 			return std::pair{west::http::finalize_state_result{
 				.http_status = west::http::status::method_not_allowed,
 				.error_message = west::make_unique_cstr("Endpoint only supports method GET"),
-			}, std::optional<restore::cached_json_response_server>{}};
+			}, restore::server_type{}};
 		}
 
 		return std::pair{
@@ -39,7 +39,7 @@ namespace
 				.http_status = west::http::status::ok,
 				.error_message = nullptr,
 			},
-			std::optional{restore::cached_json_response_server{content}}
+			restore::server_type{restore::cached_json_response_server{content}}
 		};
 	}
 
@@ -136,8 +136,6 @@ namespace
 		std::reference_wrapper<restore::resource_file const> res_file,
 		std::string_view resource_name)
 	{
-		using server = restore::resource_server;
-
 		if(req_method != "GET")
 		{
 			return std::pair {
@@ -145,7 +143,7 @@ namespace
 					.http_status = west::http::status::method_not_allowed,
 					.error_message = west::make_unique_cstr(resource_name)
 				},
-				std::optional<server>{}
+				restore::server_type{}
 			};
 		}
 
@@ -155,12 +153,10 @@ namespace
 
 			return std::pair{
 				west::http::finalize_state_result{},
-				std::optional{
-					server{
-						restore::resource_server{
-							std::move(file),
-							std::move(file_info)
-						}
+				restore::server_type{
+					restore::resource_server{
+						std::move(file),
+						std::move(file_info)
 					}
 				}
 			};
@@ -172,7 +168,7 @@ namespace
 					.http_status = west::http::status::not_found,
 					.error_message = west::make_unique_cstr(err.what())
 				},
-				std::optional<server>{}
+				restore::server_type{}
 			};
 		}
 	}
@@ -201,24 +197,21 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 	if(req_target == "/task_parameters")
 	{
 		auto [retval, server] = serve_task_parameters(header, m_task_params);
-		if(server.has_value())
-		{ m_current_server = std::move(*server); }
-
+		m_current_server = std::move(server);
 		return retval;
 	}
 
 	if(req_target == "/parameter_types")
 	{
 		auto [retval, server] = serve_parameter_types(header, m_param_types);
-		if(server.has_value())
-		{ m_current_server = std::move(*server); }
-
+		m_current_server = std::move(server);
 		return retval;
 	}
 
 	if(req_target == "/tasks")
 	{
 		puts("Get tasks");
+		m_current_server = null_server{};
 		return west::http::finalize_state_result{
 			.http_status = west::http::status::not_implemented,
 			.error_message = west::make_unique_cstr("Under construction")
@@ -228,6 +221,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 	if(req_target.value().starts_with("/tasks/"))
 	{
 		puts("Manipulate task");
+		m_current_server = null_server{};
 		return west::http::finalize_state_result{
 			.http_status = west::http::status::not_implemented,
 			.error_message = west::make_unique_cstr("Under construction")
@@ -237,12 +231,11 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 	if(auto res_name = resolve_resource(req_target); !res_name.empty())
 	{
 		auto [retval, server] = ::serve_resource(header.request_line.method, m_res_file, res_name);
-		if(server.has_value())
-		{ m_current_server = std::move(*server); }
-
+		m_current_server = std::move(server);
 		return retval;
 	}
 
+	m_current_server = null_server{};
 	return west::http::finalize_state_result{
 		.http_status = west::http::status::not_found,
 		.error_message = west::make_unique_cstr("No such API endpoint")

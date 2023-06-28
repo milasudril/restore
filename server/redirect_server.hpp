@@ -31,7 +31,7 @@ namespace restore
 			{
 				std::string from_uri_cookie{"redirected_from="};
 				from_uri_cookie.append(m_from_uri)
-					.append(";Same-Site=Strict");
+					.append(";Same-Site=Strict;Path=/");
 				fields.append("Set-Cookie", std::move(from_uri_cookie));
 			}
 

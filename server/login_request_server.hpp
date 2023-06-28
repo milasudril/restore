@@ -56,7 +56,7 @@ namespace restore
 
 				std::string cookie_value{"session_key="};
 				cookie_value.append(m_session_key)
-					.append(";SameSite=Strict;HttpOnly");
+					.append(";SameSite=Strict;HttpOnly;Path=/");
 
 				fields.append("Content-Length", std::to_string(m_bytes_to_read))
 					.append("Set-Cookie", std::move(cookie_value));

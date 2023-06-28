@@ -10,7 +10,10 @@ namespace restore
 	class redirect_server
 	{
 	public:
-		explicit redirect_server(std::string_view uri): m_uri{uri}
+		explicit redirect_server(std::string_view uri,
+			west::http::status redirect_status = west::http::status::moved_permanently):
+			m_uri{uri},
+			m_redirect_status{redirect_status}
 		{}
 
 		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
@@ -21,7 +24,7 @@ namespace restore
 			fields.append("Content-Length", "0")
 				.append("Location", std::string{m_uri});
 			return west::http::finalize_state_result{
-				.http_status = west::http::status::moved_permanently,
+				.http_status = m_redirect_status,
 				.error_message = nullptr
 			};
 		}
@@ -45,6 +48,7 @@ namespace restore
 
 	private:
 		std::string_view m_uri;
+		west::http::status m_redirect_status;
 	};
 }
 

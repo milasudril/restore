@@ -79,17 +79,36 @@ namespace
 		};
 	}
 
-	auto serve_tasks(west::http::request_header const&,
+	auto serve_tasks(west::http::request_header const& header,
 		restore::storage_file&,
 		session_status)
 	{
-		return std::pair{
-			west::http::finalize_state_result{
-				.http_status = west::http::status::not_implemented,
-				.error_message = west::make_unique_cstr("Under construction")
-			},
-			restore::server_type{}
-		};
+		if(header.request_line.method == "GET")
+		{
+			return std::pair{
+				west::http::finalize_state_result{
+					.http_status = west::http::status::not_implemented,
+					.error_message = west::make_unique_cstr("Under construction")
+				},
+				restore::server_type{}
+			};
+		}
+
+		if(header.request_line.method == "POST")
+		{
+			return std::pair{
+				west::http::finalize_state_result{
+					.http_status = west::http::status::not_implemented,
+					.error_message = west::make_unique_cstr("Under construction")
+				},
+				restore::server_type{}
+			};
+		}
+
+		return std::pair{west::http::finalize_state_result{
+			.http_status = west::http::status::method_not_allowed,
+			.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
+		}, restore::server_type{}};
 	}
 
 	auto serve_login_request(west::http::request_header const& header, std::string_view session_key)
@@ -99,7 +118,7 @@ namespace
 			return std::pair{
 				west::http::finalize_state_result{
 					.http_status = west::http::status::method_not_allowed,
-					.error_message = west::make_unique_cstr("Endpoint only supports method POST"),
+					.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
 				},
 				restore::server_type{}
 			};

@@ -105,56 +105,6 @@ namespace
 			};
 		}
 
-		{
-			auto const i = header.fields.find("content-type");
-			if(i == std::end(header.fields))
-			{
-				return std::pair{
-					west::http::finalize_state_result{
-						.http_status = west::http::status::bad_request,
-						.error_message = west::make_unique_cstr("Content-Type is missing"),
-					},
-					restore::server_type{}
-				};
-			}
-
-			if(i->second != "application/json;charset=UTF-8")
-			{
-				return std::pair{
-					west::http::finalize_state_result{
-						.http_status = west::http::status::bad_request,
-						.error_message = west::make_unique_cstr("Bad content-type"),
-					},
-					restore::server_type{}
-				};
-			}
-		}
-
-		{
-			auto const i = header.fields.find("accept");
-			if(i == std::end(header.fields))
-			{
-				return std::pair{
-					west::http::finalize_state_result{
-						.http_status = west::http::status::bad_request,
-						.error_message = west::make_unique_cstr("Accept is missing"),
-					},
-					restore::server_type{}
-				};
-			}
-
-			if(i->second != "application/json")
-			{
-				return std::pair{
-					west::http::finalize_state_result{
-						.http_status = west::http::status::bad_request,
-						.error_message = west::make_unique_cstr("This endpont will only return a response in JSON format"),
-					},
-					restore::server_type{}
-				};
-			}
-		}
-
 		return std::pair{
 			west::http::finalize_state_result{
 				.http_status = west::http::status::ok,

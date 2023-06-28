@@ -66,6 +66,19 @@ namespace
 		enum session_status session_status)
 	{ return serve_resource(header, content, session_status); }
 
+	auto serve_tasks(west::http::request_header const&,
+		restore::storage_file&,
+		session_status)
+	{
+		return std::pair{
+			west::http::finalize_state_result{
+				.http_status = west::http::status::not_implemented,
+				.error_message = west::make_unique_cstr("Under construction")
+			},
+			restore::server_type{}
+		};
+	}
+
 	auto serve_login_request(west::http::request_header const& header, std::string_view session_key)
 	{
 		if(header.request_line.method != "POST")
@@ -149,16 +162,6 @@ namespace
 		return std::string_view{};
 	}
 
-
-	auto get_session_status(west::http::cookie_store const& cookies, std::string_view session_key)
-	{
-		auto const keyval = cookies.find("session_key");
-		if(keyval == std::end(cookies))
-		{ return session_status::logged_out; }
-
-		return keyval->second == session_key? session_status::logged_in : session_status::logged_out;
-	}
-
 	auto serve_resource(west::http::request_header const& header,
 		std::reference_wrapper<restore::resource_file const> res_file,
 		std::string_view resource_name,
@@ -227,6 +230,15 @@ namespace
 
 		return cookies;
 	}
+
+	auto get_session_status(west::http::cookie_store const& cookies, std::string_view session_key)
+	{
+		auto const keyval = cookies.find("session_key");
+		if(keyval == std::end(cookies))
+		{ return session_status::logged_out; }
+
+		return keyval->second == session_key? session_status::logged_in : session_status::logged_out;
+	}
 }
 
 west::http::finalize_state_result restore::http_service::finalize_state(west::http::request_header const& header)
@@ -267,12 +279,9 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target == "/tasks")
 	{
-		puts("Get tasks");
-		m_current_server = null_server{};
-		return west::http::finalize_state_result{
-			.http_status = west::http::status::not_implemented,
-			.error_message = west::make_unique_cstr("Under construction")
-		};
+		auto [retval, server] = serve_tasks(header, m_storage_file, session_status);
+		m_current_server = std::move(server);
+		return retval;
 	}
 
 	if(req_target.value().starts_with("/tasks/"))

@@ -88,6 +88,7 @@ namespace restore
 		{
 			auto const res = m_session_info_parser.parse(buffer);
 			auto const bytes_written = static_cast<size_t>(res.ptr - std::begin(buffer));
+
 			if(res.ec == jopp::parser_error_code::completed || res.ec == jopp::parser_error_code::more_data_needed)
 			{
 				return http_write_req_result{

@@ -7,9 +7,9 @@
 * { outline: 1px solid red; }
 th.row-header{text-align: left}
 	</style>
-	<script src="utils.js"></script>
+	<script src="../public/utils.js"></script>
 	<script src="make_form.js"></script>
-	<script src="serialize_form.js"></script>
+	<script src="../public/serialize_form.js"></script>
 
 <script>
 let pending_types = fetch_data("/parameter_types");
@@ -30,7 +30,7 @@ window.onload = async function() {
 function submit_form(event, doc, subform)
 {
 	event.preventDefault();
-	
+
 	let output_object = {}
 	output_object.task_name = doc.getElementById("task_name").value;
 	output_object.parameters = {};

@@ -5,10 +5,7 @@
 std::string_view restore::resolve_resource(west::http::uri const& req_target)
 {
 	if(req_target == "/favicon.ico")
-	{ return "ui/favicon.ico"; }
-
-	if(req_target == "/")
-	{ return "ui/mainpage.html"; }
+	{ return "ui/public/favicon.ico"; }
 
 	if(req_target.value().starts_with("/ui/"))
 	{ return req_target.value().substr(1); }

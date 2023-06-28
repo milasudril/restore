@@ -21,7 +21,7 @@ namespace
 				.http_status = west::http::status::ok,
 				.error_message = nullptr,
 			},
-			std::optional{restore::redirect_server{"/ui/mainpage.html"}}
+			std::optional{restore::redirect_server{"/ui/restricted/mainpage.html"}}
 		};
 	}
 

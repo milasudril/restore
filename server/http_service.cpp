@@ -181,6 +181,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 		};
 	}
 
+	if(auto res_name = resolve_resource(req_target); !res_name.empty())
 	{
 		auto [retval, server] = serve_resource(header, m_res_file);
 		if(server.has_value())
@@ -188,4 +189,9 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 		return retval;
 	}
+
+	return west::http::finalize_state_result{
+		.http_status = west::http::status::not_found,
+		.error_message = west::make_unique_cstr("No such API endpoint")
+	};
 }

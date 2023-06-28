@@ -11,7 +11,7 @@ namespace
 			return std::pair{west::http::finalize_state_result{
 				.http_status = west::http::status::method_not_allowed,
 				.error_message = west::make_unique_cstr("Endpoint only supports method GET"),
-			}, std::optional<restore::redirect_server>{}};
+			}, restore::server_type{}};
 		}
 
 		// TODO: If not logged in, redirect to login page
@@ -20,7 +20,7 @@ namespace
 				.http_status = west::http::status::ok,
 				.error_message = nullptr,
 			},
-			std::optional{restore::redirect_server{"/ui/restricted/mainpage.html"}}
+			restore::server_type{restore::redirect_server{"/ui/restricted/mainpage.html"}}
 		};
 	}
 
@@ -185,9 +185,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 	if(req_target == "/")
 	{
 		auto [retval, server] = serve_mainpage(header);
-		if(server.has_value())
-		{ m_current_server = std::move(*server); }
-
+		m_current_server = std::move(server);
 		return retval;
 	}
 

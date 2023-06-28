@@ -16,7 +16,6 @@ namespace
 			}, restore::server_type{}};
 		}
 
-		// TODO: If not logged in, redirect to login page
 		return std::pair{
 			west::http::finalize_state_result {
 				.http_status = west::http::status::ok,

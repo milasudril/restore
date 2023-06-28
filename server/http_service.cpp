@@ -128,7 +128,7 @@ namespace
 		if(req_target == "/favicon.ico")
 		{ return "ui/public/favicon.ico"; }
 
-		if(req_target.value().starts_with("/ui/"))
+		if(req_target.value().starts_with("/ui/public/") || req_target.value().starts_with("/ui/restricted/"))
 		{ return req_target.value().substr(1); }
 
 		return std::string_view{};
@@ -171,7 +171,7 @@ namespace
 
 		try
 		{
-			if(!resource_name.starts_with("ui/public") && !login_is_valid(header, session_key))
+			if(!resource_name.starts_with("ui/public/") && !login_is_valid(header, session_key))
 			{
 				return std::pair{
 					west::http::finalize_state_result{},

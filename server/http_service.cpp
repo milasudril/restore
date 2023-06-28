@@ -132,9 +132,16 @@ namespace
 		return std::string_view{};
 	}
 
+	auto login_is_valid(west::http::request_header const&,
+		std::string_view)
+	{
+		return false;
+	}
+
 	auto serve_resource(west::http::request_header const& header,
 		std::reference_wrapper<restore::resource_file const> res_file,
-		std::string_view resource_name)
+		std::string_view resource_name,
+		std::string_view session_key)
 	{
 		if(header.request_line.method != "GET")
 		{
@@ -149,6 +156,19 @@ namespace
 
 		try
 		{
+			if(!resource_name.starts_with("ui/public") && !login_is_valid(header, session_key))
+			{
+				return std::pair{
+					west::http::finalize_state_result{},
+					restore::server_type{
+						restore::redirect_server{
+							"/ui/public/login.html",
+							header.request_line.request_target.value(),
+							west::http::status::see_other
+						}
+					}
+				};
+			}
 			auto [file, file_info] = res_file.get().get_resource(resource_name);
 
 			return std::pair{
@@ -230,7 +250,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(auto res_name = resolve_resource(req_target); !res_name.empty())
 	{
-		auto [retval, server] = serve_resource(header, m_res_file, res_name);
+		auto [retval, server] = serve_resource(header, m_res_file, res_name, m_session_key);
 		m_current_server = std::move(server);
 		return retval;
 	}

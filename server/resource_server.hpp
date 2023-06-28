@@ -1,5 +1,3 @@
-//@	{"dependencies_extra":[{"ref":"./resource_server.o", "rel":"implementation"}]}
-
 #ifndef RESTORE_RESOURCE_SERVER_HPP
 #define RESTORE_RESOURCE_SERVER_HPP
 
@@ -52,12 +50,6 @@ namespace restore
 		Wad64::InputFile m_input_file;
 		resource_info m_resource_info;
 	};
-
-	std::string_view resolve_resource(west::http::uri const& req_target);
-
-	std::pair<west::http::finalize_state_result, std::optional<resource_server>>
-serve_resource(west::http::request_header const& header,
-	std::reference_wrapper<resource_file const> res_file);
 }
 
 #endif

@@ -2,6 +2,8 @@
 
 #include "./http_service.hpp"
 
+#include <west/http_utils.hpp>
+
 namespace
 {
 	auto serve_mainpage(west::http::request_header const& header)
@@ -133,14 +135,22 @@ namespace
 	}
 
 	auto login_is_valid(west::http::request_header const& header,
-		std::string_view)
+		std::string_view session_key)
 	{
 		auto i = header.fields.find("Cookie");
 		if(i == std::end(header.fields))
 		{ return false; }
 
-		printf("%s\n", i->second.c_str());
-		return false;
+		west::http::cookie_store cookies;
+		auto const res = west::http::parse_cookie_string(i->second, cookies);
+		if(res.ec != west::http::cookie_string_parser_error_code::no_error)
+		{ return false; }
+
+		auto const keyval = cookies.find("session_key");
+		if(keyval == std::end(cookies))
+		{ return false; }
+
+		return keyval->second == session_key;
 	}
 
 	auto serve_resource(west::http::request_header const& header,

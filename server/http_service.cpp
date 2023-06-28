@@ -35,7 +35,7 @@ namespace
 		{
 			return std::pair{west::http::finalize_state_result{
 				.http_status = west::http::status::unauthorized,
-				.error_message = west::make_unique_cstr("Session key is wrong or not provided"),
+				.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
 			}, restore::server_type{}};
 		}
 
@@ -43,7 +43,7 @@ namespace
 		{
 			return std::pair{west::http::finalize_state_result{
 				.http_status = west::http::status::method_not_allowed,
-				.error_message = west::make_unique_cstr("Endpoint only supports method GET"),
+				.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
 			}, restore::server_type{}};
 		}
 
@@ -81,8 +81,19 @@ namespace
 
 	auto serve_tasks(west::http::request_header const& header,
 		restore::storage_file&,
-		session_status)
+		enum session_status session_status)
 	{
+		if(session_status != session_status::logged_in)
+		{
+			return std::pair{
+				west::http::finalize_state_result{
+					.http_status = west::http::status::unauthorized,
+					.error_message = west::make_unique_cstr(header.request_line.request_target.value())
+				},
+				restore::server_type{}
+			};
+		}
+
 		if(header.request_line.method == "GET")
 		{
 			return std::pair{

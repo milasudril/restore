@@ -4,7 +4,6 @@
 #include "./http_request_result.hpp"
 
 #include <west/http_message_header.hpp>
-#include <jopp/parser.hpp>
 #include <compare>
 
 namespace restore
@@ -93,13 +92,13 @@ namespace restore
 			{
 				return http_write_req_result{
 					.bytes_written = bytes_written,
-					.ec = http_req_processing_result{}
+					.ec = http_req_processing_result{res.ec}
 				};
 			}
 
 			return http_write_req_result{
 				.bytes_written = bytes_written,
-				.ec = http_req_processing_result{}
+				.ec = http_req_processing_result{res.ec}
 			};
 		}
 

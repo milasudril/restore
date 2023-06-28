@@ -1,19 +1,42 @@
 #ifndef RESTORE_HTTP_REQUEST_RESULT_HPP
 #define RESTORE_HTTP_REQUEST_RESULT_HPP
 
+#include <jopp/parser.hpp>
+
 namespace restore
 {
-	enum class http_req_processing_result{};
+	struct http_req_processing_result
+	{
+		std::variant<jopp::parser_error_code> value;
+	};
 
-	constexpr bool can_continue(http_req_processing_result)
-	{ return true; }
+	constexpr bool can_continue(http_req_processing_result val)
+	{
+		return std::visit(jopp::overload{
+			[](jopp::parser_error_code val) {
+				return val == jopp::parser_error_code::completed || val == jopp::parser_error_code::more_data_needed;
+			}
+		}, val.value);
+	}
 
-	constexpr bool is_error_indicator(http_req_processing_result)
-	{ return false; }
+	constexpr bool is_error_indicator(http_req_processing_result val)
+	{
+		return std::visit(jopp::overload{
+			[](jopp::parser_error_code val) {
+				return !(val == jopp::parser_error_code::completed || val == jopp::parser_error_code::more_data_needed);
+			}
+		}, val.value);
+	}
 
 
-	constexpr char const* to_string(http_req_processing_result)
-	{ return "No error"; }
+	constexpr char const* to_string(http_req_processing_result val)
+	{
+		return std::visit(jopp::overload{
+			[](jopp::parser_error_code val) {
+				return to_string(val);
+			}
+		}, val.value);
+	}
 
 	struct http_write_req_result
 	{

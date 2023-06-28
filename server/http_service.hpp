@@ -38,10 +38,15 @@ struct jopp::object_converter<west::http::finalize_state_result>
 
 namespace restore
 {
+	using server_type = std::variant<null_server,
+		resource_server,
+		json_response_server,
+		cached_json_response_server,
+		login_request_server,
+		redirect_server>;
+
 	class http_service
 	{
-		using server = std::variant<null_server, resource_server, json_response_server, cached_json_response_server, login_request_server, redirect_server>;
-
 	public:
 		explicit http_service(std::reference_wrapper<resource_file const> res_file,
 			std::reference_wrapper<storage_file> storage,
@@ -99,7 +104,7 @@ namespace restore
  		jopp::json_buffer_view m_param_types;
  		jopp::json_buffer_view m_task_params;
 
-		server m_current_server;
+		server_type m_current_server;
 	};
 }
 

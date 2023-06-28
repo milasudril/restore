@@ -88,7 +88,7 @@ namespace
 					.http_status = west::http::status::method_not_allowed,
 					.error_message = west::make_unique_cstr("Endpoint only supports method POST"),
 				},
-				std::optional<restore::login_request_server>{}
+				restore::server_type{}
 			};
 		}
 
@@ -101,7 +101,7 @@ namespace
 						.http_status = west::http::status::bad_request,
 						.error_message = west::make_unique_cstr("Content-Type is missing"),
 					},
-					std::optional<restore::login_request_server>{}
+					restore::server_type{}
 				};
 			}
 
@@ -112,7 +112,7 @@ namespace
 						.http_status = west::http::status::bad_request,
 						.error_message = west::make_unique_cstr("Bad content-type"),
 					},
-					std::optional<restore::login_request_server>{}
+					restore::server_type{}
 				};
 			}
 		}
@@ -126,7 +126,7 @@ namespace
 						.http_status = west::http::status::bad_request,
 						.error_message = west::make_unique_cstr("Accept is missing"),
 					},
-					std::optional<restore::login_request_server>{}
+					restore::server_type{}
 				};
 			}
 
@@ -137,7 +137,7 @@ namespace
 						.http_status = west::http::status::bad_request,
 						.error_message = west::make_unique_cstr("This endpont will only return a response in JSON format"),
 					},
-					std::optional<restore::login_request_server>{}
+					restore::server_type{}
 				};
 			}
 		}
@@ -147,7 +147,7 @@ namespace
 				.http_status = west::http::status::ok,
 				.error_message = nullptr,
 			},
-			std::optional{restore::login_request_server{session_key}}
+			restore::server_type{restore::login_request_server{session_key}}
 		};
 	}
 
@@ -257,9 +257,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 	if(req_target == "/login")
 	{
 		auto [retval, server] = serve_login_request(header, m_session_key);
-		if(server.has_value())
-		{ m_current_server = std::move(*server); }
-
+		m_current_server = std::move(server);
 		return retval;
 	}
 

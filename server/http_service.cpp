@@ -66,6 +66,19 @@ namespace
 		enum session_status session_status)
 	{ return serve_resource(header, content, session_status); }
 
+	auto serve_task(west::http::request_header const&,
+		restore::storage_file&,
+		session_status)
+	{
+		return std::pair{
+			west::http::finalize_state_result{
+				.http_status = west::http::status::not_implemented,
+				.error_message = west::make_unique_cstr("Under construction")
+			},
+			restore::server_type{}
+		};
+	}
+
 	auto serve_tasks(west::http::request_header const&,
 		restore::storage_file&,
 		session_status)
@@ -284,12 +297,9 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target.value().starts_with("/tasks/"))
 	{
-		puts("Manipulate task");
-		m_current_server = null_server{};
-		return west::http::finalize_state_result{
-			.http_status = west::http::status::not_implemented,
-			.error_message = west::make_unique_cstr("Under construction")
-		};
+		auto [retval, server] = serve_task(header, m_storage_file, session_status);
+		m_current_server = std::move(server);
+		return retval;
 	}
 
 	if(auto res_name = resolve_resource(req_target); !res_name.empty())

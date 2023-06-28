@@ -132,16 +132,16 @@ namespace
 		return std::string_view{};
 	}
 
-	auto serve_resource(west::http::request_method const& req_method,
+	auto serve_resource(west::http::request_header const& header,
 		std::reference_wrapper<restore::resource_file const> res_file,
 		std::string_view resource_name)
 	{
-		if(req_method != "GET")
+		if(header.request_line.method != "GET")
 		{
 			return std::pair {
 				west::http::finalize_state_result{
 					.http_status = west::http::status::method_not_allowed,
-					.error_message = west::make_unique_cstr(resource_name)
+					.error_message = west::make_unique_cstr(header.request_line.request_target.value())
 				},
 				restore::server_type{}
 			};
@@ -230,7 +230,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(auto res_name = resolve_resource(req_target); !res_name.empty())
 	{
-		auto [retval, server] = ::serve_resource(header.request_line.method, m_res_file, res_name);
+		auto [retval, server] = serve_resource(header, m_res_file, res_name);
 		m_current_server = std::move(server);
 		return retval;
 	}

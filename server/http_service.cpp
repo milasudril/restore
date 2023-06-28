@@ -6,6 +6,8 @@
 
 namespace
 {
+	enum class session_status{logged_in, logged_out};
+
 	auto serve_mainpage(west::http::request_header const& header)
 	{
 		if(header.request_line.method != "GET")
@@ -25,8 +27,18 @@ namespace
 		};
 	}
 
-	auto serve_resource(west::http::request_header const& header, jopp::json_buffer_view content)
+	auto serve_resource(west::http::request_header const& header,
+		jopp::json_buffer_view content,
+		enum session_status session_status)
 	{
+		if(session_status != session_status::logged_in)
+		{
+			return std::pair{west::http::finalize_state_result{
+				.http_status = west::http::status::unauthorized,
+				.error_message = west::make_unique_cstr("Session key is wrong or not provided"),
+			}, restore::server_type{}};
+		}
+
 		if(header.request_line.method != "GET")
 		{
 			return std::pair{west::http::finalize_state_result{
@@ -44,11 +56,15 @@ namespace
 		};
 	}
 
-	auto serve_task_parameters(west::http::request_header const& header, jopp::json_buffer_view content)
-	{ return serve_resource(header, content); }
+	auto serve_task_parameters(west::http::request_header const& header,
+		jopp::json_buffer_view content,
+		enum session_status session_status)
+	{ return serve_resource(header, content, session_status); }
 
-	auto serve_parameter_types(west::http::request_header const& header, jopp::json_buffer_view content)
-	{ return serve_resource(header, content); }
+	auto serve_parameter_types(west::http::request_header const& header,
+		jopp::json_buffer_view content,
+		enum session_status session_status)
+	{ return serve_resource(header, content, session_status); }
 
 	auto serve_login_request(west::http::request_header const& header, std::string_view session_key)
 	{
@@ -133,21 +149,6 @@ namespace
 		return std::string_view{};
 	}
 
-	auto get_cookies(west::http::request_header const& header)
-	{
-		auto i = header.fields.find("Cookie");
-		if(i == std::end(header.fields))
-		{ return west::http::cookie_store{}; }
-
-		west::http::cookie_store cookies;
-		auto const res = west::http::parse_cookie_string(i->second, cookies);
-		if(res.ec != west::http::cookie_string_parser_error_code::no_error)
-		{ return west::http::cookie_store{}; }
-
-		return cookies;
-	}
-
-	enum class session_status{logged_in, logged_out};
 
 	auto get_session_status(west::http::cookie_store const& cookies, std::string_view session_key)
 	{
@@ -212,6 +213,20 @@ namespace
 			};
 		}
 	}
+
+	auto get_cookies(west::http::request_header const& header)
+	{
+		auto i = header.fields.find("Cookie");
+		if(i == std::end(header.fields))
+		{ return west::http::cookie_store{}; }
+
+		west::http::cookie_store cookies;
+		auto const res = west::http::parse_cookie_string(i->second, cookies);
+		if(res.ec != west::http::cookie_string_parser_error_code::no_error)
+		{ return west::http::cookie_store{}; }
+
+		return cookies;
+	}
 }
 
 west::http::finalize_state_result restore::http_service::finalize_state(west::http::request_header const& header)
@@ -238,14 +253,14 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target == "/task_parameters")
 	{
-		auto [retval, server] = serve_task_parameters(header, m_task_params);
+		auto [retval, server] = serve_task_parameters(header, m_task_params, session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}
 
 	if(req_target == "/parameter_types")
 	{
-		auto [retval, server] = serve_parameter_types(header, m_param_types);
+		auto [retval, server] = serve_parameter_types(header, m_param_types, session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}

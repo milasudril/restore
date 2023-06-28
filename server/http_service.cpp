@@ -147,21 +147,21 @@ namespace
 		return cookies;
 	}
 
-	auto login_is_valid(west::http::request_header const& header,
-		std::string_view session_key)
+	enum class session_status{logged_in, logged_out};
+
+	auto get_session_status(west::http::cookie_store const& cookies, std::string_view session_key)
 	{
-		auto cookies = get_cookies(header);
 		auto const keyval = cookies.find("session_key");
 		if(keyval == std::end(cookies))
-		{ return false; }
+		{ return session_status::logged_out; }
 
-		return keyval->second == session_key;
+		return keyval->second == session_key? session_status::logged_in : session_status::logged_out;
 	}
 
 	auto serve_resource(west::http::request_header const& header,
 		std::reference_wrapper<restore::resource_file const> res_file,
 		std::string_view resource_name,
-		std::string_view session_key)
+		enum session_status session_status)
 	{
 		if(header.request_line.method != "GET")
 		{
@@ -176,7 +176,7 @@ namespace
 
 		try
 		{
-			if(!resource_name.starts_with("ui/public/") && !login_is_valid(header, session_key))
+			if(!resource_name.starts_with("ui/public/") && session_status != session_status::logged_in)
 			{
 				return std::pair{
 					west::http::finalize_state_result{},
@@ -216,6 +216,8 @@ namespace
 
 west::http::finalize_state_result restore::http_service::finalize_state(west::http::request_header const& header)
 {
+	auto const session_cookies = get_cookies(header);
+	auto const session_status = get_session_status(session_cookies, m_session_key);
 	auto const& req_target = header.request_line.request_target;
 
 	if(req_target == "/")
@@ -270,7 +272,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(auto res_name = resolve_resource(req_target); !res_name.empty())
 	{
-		auto [retval, server] = serve_resource(header, m_res_file, res_name, m_session_key);
+		auto [retval, server] = serve_resource(header, m_res_file, res_name, session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}

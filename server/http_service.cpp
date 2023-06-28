@@ -8,7 +8,6 @@ namespace
 	{
 		if(header.request_line.method != "GET")
 		{
-
 			return std::pair{west::http::finalize_state_result{
 				.http_status = west::http::status::method_not_allowed,
 				.error_message = west::make_unique_cstr("Endpoint only supports method GET"),
@@ -137,35 +136,44 @@ namespace
 		std::reference_wrapper<restore::resource_file const> res_file,
 		std::string_view resource_name)
 	{
+		using server = restore::resource_server;
+
 		if(req_method != "GET")
 		{
-			west::http::finalize_state_result validation_result;
-			validation_result.http_status = west::http::status::method_not_allowed;
-			validation_result.error_message = west::make_unique_cstr(resource_name);
-
-			return std::pair{std::move(validation_result), std::optional<restore::resource_server>{}};
+			return std::pair {
+				west::http::finalize_state_result{
+					.http_status = west::http::status::method_not_allowed,
+					.error_message = west::make_unique_cstr(resource_name)
+				},
+				std::optional<server>{}
+			};
 		}
 
 		try
 		{
 			auto [file, file_info] = res_file.get().get_resource(resource_name);
-			west::http::finalize_state_result validation_result{};
-			validation_result.http_status = west::http::status::ok;
-			return std::pair{std::move(validation_result),
+
+			return std::pair{
+				west::http::finalize_state_result{},
 				std::optional{
-					restore::resource_server{
-						std::move(file),
-						std::move(file_info)
+					server{
+						restore::resource_server{
+							std::move(file),
+							std::move(file_info)
+						}
 					}
 				}
 			};
 		}
 		catch(std::runtime_error const& err)
 		{
-			west::http::finalize_state_result validation_result;
-			validation_result.http_status = west::http::status::not_found;
-			validation_result.error_message = west::make_unique_cstr(err.what());
-			return std::pair{std::move(validation_result), std::optional<restore::resource_server>{}};
+			return std::pair{
+				west::http::finalize_state_result{
+					.http_status = west::http::status::not_found,
+					.error_message = west::make_unique_cstr(err.what())
+				},
+				std::optional<server>{}
+			};
 		}
 	}
 }

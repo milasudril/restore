@@ -132,9 +132,14 @@ namespace
 		return std::string_view{};
 	}
 
-	auto login_is_valid(west::http::request_header const&,
+	auto login_is_valid(west::http::request_header const& header,
 		std::string_view)
 	{
+		auto i = header.fields.find("Cookie");
+		if(i == std::end(header.fields))
+		{ return false; }
+
+		printf("%s\n", i->second.c_str());
 		return false;
 	}
 

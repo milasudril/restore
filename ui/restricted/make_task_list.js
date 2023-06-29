@@ -5,7 +5,7 @@ function show_error_message(element_factory, text, output_container)
 	let row = element_factory.createElement("tr");
 	let cell = element_factory.createElement("td");
 	cell.setAttribute("class", "error_message");
-	let message = element_factory.createTextNode("There are tasks to display: " + text);
+	let message = element_factory.createTextNode("There are no tasks to display: " + text);
 	cell.appendChild(message);
 	row.appendChild(message);
 	output_container.appendChild(row);

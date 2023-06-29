@@ -12,7 +12,7 @@ namespace restore
 	class json_response_server
 	{
 	public:
-		explicit json_response_server(jopp::container const& response):
+		explicit json_response_server(jopp::object const& response):
 			m_response{to_string(response)}
 		{ }
 

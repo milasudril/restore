@@ -86,7 +86,7 @@ namespace restore
 
 		void finalize_state(west::http::field_map& fields, west::http::finalize_state_result const& res)
 		{
-			m_current_server = json_response_server{jopp::container{jopp::to_json(res)}};
+			m_current_server = json_response_server{jopp::to_json(res)};
 			std::visit([&fields](auto& server) {
 				return server.finalize_state(fields);
 			}, m_current_server);

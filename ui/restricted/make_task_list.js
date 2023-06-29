@@ -1,24 +1,27 @@
 "use strict";
 
+function show_error_message(element_factory, text, output_container)
+{
+	let row = element_factory.createElement("tr");
+	let cell = element_factory.createElement("td");
+	cell.setAttribute("class", "error_message");
+	let message = element_factory.createTextNode("There are tasks to display: " + text);
+	cell.appendChild(message);
+	row.appendChild(message);
+	output_container.appendChild(row);
+}
+
 function fill_tasklist(response, element_factory, output_container)
 {
 	if(!response.succeeded)
 	{
-		let caption = element_factory.createElement("caption");
-		caption.setAttribute("class", "error_message");
-		let caption_content = element_factory.createTextNode("There are tasks to display: " + response.message.error_message);
-		caption.appendChild(caption_content);
-		output_container.appendChild(caption);
+		show_error_message(element_factory, response.message.error_message, output_container);
 		return;
 	}
 
 	if(Object.keys(response).length == 0)
 	{
-		let caption = element_factory.createElement("caption");
-		caption.setAttribute("class", "error_message");
-		let caption_content = element_factory.createTextNode("There are no tasks to display");
-		caption.appendChild(caption_content);
-		output_container.appendChild(caption);
+		show_error_message(element_factory, "No error", output_container);
 		return;
 	}
 
@@ -27,7 +30,7 @@ function fill_tasklist(response, element_factory, output_container)
 		let row = element_factory.createElement("tr");
 
 		let taskname_cell = element_factory.createElement("td");
-		let taskname_element = element_factor.createTextNode(task);
+		let taskname_element = element_factory.createTextNode(task);
 		taskname_cell.appendChild(taskname_element);
 		row.appendChild(taskname_cell);
 

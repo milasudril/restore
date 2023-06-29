@@ -23,7 +23,7 @@ namespace restore
 	{
 		return std::visit(jopp::overload{
 			[](jopp::parser_error_code val) {
-				return !(val == jopp::parser_error_code::completed || val == jopp::parser_error_code::more_data_needed);
+				return val != jopp::parser_error_code::completed;
 			}
 		}, val.value);
 	}

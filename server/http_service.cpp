@@ -80,7 +80,7 @@ namespace
 	}
 
 	auto serve_tasks(west::http::request_header const& header,
-		restore::storage_file&,
+		restore::storage_file& storage_file,
 		enum session_status session_status)
 	{
 		if(session_status != session_status::logged_in)
@@ -96,6 +96,12 @@ namespace
 
 		if(header.request_line.method == "GET")
 		{
+			auto const& entries = storage_file.ls();
+			for(auto const& entry : entries)
+			{
+				printf("%s\n", entry.first.c_str());
+			}
+
 			return std::pair{
 				west::http::finalize_state_result{
 					.http_status = west::http::status::not_implemented,

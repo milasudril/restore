@@ -11,7 +11,7 @@ function show_error_message(element_factory, text, output_container)
 	output_container.appendChild(row);
 }
 
-function fill_tasklist(response, element_factory, output_container)
+function fill_tasklist(response, element_factory, output_container, row_event_handler)
 {
 	if(!response.succeeded)
 	{
@@ -29,17 +29,67 @@ function fill_tasklist(response, element_factory, output_container)
 	{
 		let row = element_factory.createElement("tr");
 
-		let taskname_cell = element_factory.createElement("td");
-		let taskname_element = element_factory.createTextNode(task);
-		taskname_cell.appendChild(taskname_element);
-		row.appendChild(taskname_cell);
+		{
+			let cell = element_factory.createElement("td");
+			let cell_text = element_factory.createTextNode(task);
+			cell.appendChild(cell_text);
+			row.appendChild(cell);
+		}
+
+		let task_uri_name = response.message[task].uri_name
+
+		{
+			let cell = element_factory.createElement("td");
+			let progress = element_factory.createElement("progress");
+			progress.setAttribute("restore-task-ref", task_uri_name);
+			progress.setAttribute("restore-task-name", task);
+			progress.setAttribute("value", "0.5");
+			cell.appendChild(progress);
+			row.appendChild(cell);
+		}
+
+		{
+			let cell = element_factory.createElement("td");
+			let button = element_factory.createElement("input");
+			button.setAttribute("type", "button");
+			button.setAttribute("restore-task-ref", task_uri_name);
+			button.setAttribute("restore-task-name", task);
+			button.addEventListener("mouseup", row_event_handler);
+			button.setAttribute("restore-task-action", "get_result");
+			button.setAttribute("value", "Get result");
+			cell.appendChild(button);
+			row.appendChild(cell);
+		}
+
+		{
+			let cell = element_factory.createElement("td");
+			let button = element_factory.createElement("input");
+			button.setAttribute("type", "button");
+			button.setAttribute("restore-task-ref", task_uri_name);
+			button.setAttribute("restore-task-name", task);
+			button.addEventListener("mouseup", row_event_handler);
+			button.setAttribute("restore-task-action", "Resume");  // TODO: Depends on task status
+			button.setAttribute("value", "Resume");  // TODO: Depends on task status
+			cell.appendChild(button);
+			row.appendChild(cell);
+		}
+
+		{
+			let cell = element_factory.createElement("td");
+			let button = element_factory.createElement("input");
+			button.setAttribute("type", "button");
+			button.setAttribute("restore-task-ref", task_uri_name);
+			button.setAttribute("restore-task-name", task);
+			button.addEventListener("mouseup", row_event_handler);
+			button.setAttribute("restore-task-action", "delete");
+			button.setAttribute("value", "Delete");
+			cell.appendChild(button);
+			row.appendChild(cell);
+		}
+
 
 /*
 		TODO: Will need to GET status
-		let taskstatus_cell = element_factory.createElement("td");
-		let taskstatus_element = element_factory.createTextNode(response.message[task].status);
-		taskstatus_cell.appendChild(taskstatus_element);
-		row.appendChild(taskstatus_cell);
 */
 
 		output_container.appendChild(row);

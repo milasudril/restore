@@ -96,12 +96,6 @@ namespace
 
 		if(header.request_line.method == "GET")
 		{
-			auto const& entries = storage_file.ls();
-			for(auto const& entry : entries)
-			{
-				printf("%s\n", entry.first.c_str());
-			}
-
 			return std::pair{
 				west::http::finalize_state_result{},
 				restore::server_type{restore::json_response_server{generate_entity_list(storage_file, "shared/tasks/")}}

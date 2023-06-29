@@ -8,8 +8,8 @@
 
 #include <jopp/types.hpp>
 #include <wad64/fd_owner.hpp>
-#include <wad64/readonly_archive.hpp>
-#include <wad64/input_file.hpp>
+#include <wad64/archive.hpp>
+#include <wad64/wad64.hpp>
 
 #include <algorithm>
 
@@ -31,6 +31,9 @@ namespace restore
 
 		auto const& ls() const
 		{ return m_archive.ls(); }
+
+		void insert(std::span<std::byte const> data, std::string_view name)
+		{	return Wad64::insert(m_archive, Wad64::FileCreationMode::AllowCreation(), data, name); }
 
 	private:
 		Wad64::FdOwner m_fd;

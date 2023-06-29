@@ -31,7 +31,7 @@ function submit_form(event, doc, subform)
 	event.preventDefault();
 
 	let output_object = {}
-	output_object.task_name = doc.getElementById("task_name").value;
+	output_object.name = doc.getElementById("task_name").value;
 	output_object.parameters = {};
 	serialize_form(subform, output_object.parameters);
 

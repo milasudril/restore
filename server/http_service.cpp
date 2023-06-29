@@ -114,11 +114,8 @@ namespace
 		if(header.request_line.method == "POST")
 		{
 			return std::pair{
-				west::http::finalize_state_result{
-					.http_status = west::http::status::not_implemented,
-					.error_message = west::make_unique_cstr("Under construction")
-				},
-				restore::server_type{}
+				west::http::finalize_state_result{},
+				restore::server_type{restore::create_task_server{storage_file}}
 			};
 		}
 

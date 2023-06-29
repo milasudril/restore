@@ -12,21 +12,33 @@ th.row-header{text-align: left}
 	<script>
 let pending_task_list = fetch_data("/tasks");
 
+function perform_task_action()
+{
+	window.alert("Hej");
+}
+
 window.onload = async function() {
 	let get_task_list_result = await pending_task_list;
-	fill_tasklist(get_task_list_result, document, document.getElementById("tasklist"));
+	fill_tasklist(get_task_list_result, document, document.getElementById("tasklist"), perform_task_action);
 }
+
 	</script>
 	</head>
 	<body>
-	<header><h1>Mainpage</h1></header>
-	<main>
-		<section><h1>Tasks</h1>
-			<p><a href="create_task.html">Create new task</a></p>
-			<table id="tasklist">
-			</table>
-		</section>
-	</main>
+		<header><h1>Mainpage</h1></header>
+		<main>
+			<section>
+				<h1>Tasks</h1>
+				<nav id="formactions">
+					<ul>
+						<li><a href="mainpage.html">Refresh task list</a></li>
+						<li><a href="create_task.html">Create new task</a></li>
+					</ul>
+				</nav>
+				<table id="tasklist">
+				</table>
+			</section>
+		</main>
 	</body>
 </html>
 

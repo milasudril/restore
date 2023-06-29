@@ -1,4 +1,7 @@
-//@ {"dependencies":[{"ref": "wad64", "origin":"pkg-config"}]}
+//@ {
+//@  "dependencies":[{"ref": "wad64", "origin":"pkg-config"}],
+//@  "dependencies_extra":[{"ref": "./storage_file.o", "rel":"implementation"}]
+//@ }
 
 #ifndef RESTORE_STORAGE_FILE_HPP
 #define RESTORE_STORAGE_FILE_HPP
@@ -39,6 +42,9 @@ namespace restore
 		Wad64::FdOwner m_fd;
 		Wad64::Archive m_archive;
 	};
+
+	jopp::object generate_entity_list(storage_file const& file, std::string_view prefix);
+
 }
 
 #endif

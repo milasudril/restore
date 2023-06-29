@@ -103,11 +103,8 @@ namespace
 			}
 
 			return std::pair{
-				west::http::finalize_state_result{
-					.http_status = west::http::status::not_implemented,
-					.error_message = west::make_unique_cstr("Under construction")
-				},
-				restore::server_type{}
+				west::http::finalize_state_result{},
+				restore::server_type{restore::json_response_server{generate_entity_list(storage_file, "shared/tasks/")}}
 			};
 		}
 

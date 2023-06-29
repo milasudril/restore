@@ -34,10 +34,13 @@ function fill_tasklist(response, element_factory, output_container)
 		taskname_cell.appendChild(taskname_element);
 		row.appendChild(taskname_cell);
 
+/*
+		TODO: Will need to GET status
 		let taskstatus_cell = element_factory.createElement("td");
-		let taskstatus_element = element_factor.createTextNode(response.message[task].status);
+		let taskstatus_element = element_factory.createTextNode(response.message[task].status);
 		taskstatus_cell.appendChild(taskstatus_element);
 		row.appendChild(taskstatus_cell);
+*/
 
 		output_container.appendChild(row);
 	}

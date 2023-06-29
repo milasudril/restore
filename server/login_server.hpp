@@ -1,5 +1,5 @@
-#ifndef RESTORE_LOGINSERVER_SERVER_HPP
-#define RESTORE_LOGINSERVER_SERVER_HPP
+#ifndef RESTORE_LOGIN_SERVER_HPP
+#define RESTORE_LOGIN_SERVER_HPP
 
 #include "./http_request_result.hpp"
 
@@ -8,10 +8,10 @@
 
 namespace restore
 {
-	class login_request_server
+	class login_server
 	{
 	public:
-		explicit login_request_server(std::string_view session_key):
+		explicit login_server(std::string_view session_key):
 			m_session_key{session_key},
 			m_session_info{std::make_unique<jopp::container>()},
 			m_session_info_parser{*m_session_info},

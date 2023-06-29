@@ -10,7 +10,7 @@
 #include "./null_server.hpp"
 #include "./json_response_server.hpp"
 #include "./cached_json_response_server.hpp"
-#include "./login_request_server.hpp"
+#include "./login_server.hpp"
 #include "./redirect_server.hpp"
 #include "./create_task_server.hpp"
 
@@ -43,7 +43,7 @@ namespace restore
 		resource_server,
 		json_response_server,
 		cached_json_response_server,
-		login_request_server,
+		login_server,
 		redirect_server,
 		create_task_server>;
 

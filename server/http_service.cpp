@@ -143,7 +143,7 @@ namespace
 				.http_status = west::http::status::ok,
 				.error_message = nullptr,
 			},
-			restore::server_type{restore::login_request_server{session_key}}
+			restore::server_type{restore::login_server{session_key}}
 		};
 	}
 

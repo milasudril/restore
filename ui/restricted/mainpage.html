@@ -15,19 +15,28 @@ th.row-header{text-align: left}
 let pending_task_list = send_request("/tasks");
 
 let task_actions = {
-	get_result : function(task_name, task_uri_name) {
+	get_result : async function(task_name, task_uri_name) {
 		console.log("get_result");
 	},
-	resume: function(task_name, task_uri_name) {
+	resume: async function(task_name, task_uri_name) {
 		console.log("resume");
 	},
-	suspend: function(task_name, task_uri_name) {
+	suspend: async function(task_name, task_uri_name) {
 		console.log("suspend");
 	},
-	"delete": function(task_name, task_uri_name) {
-		console.log("delete");
+	delete: async function(task_name, task_uri_name) {
+		let response = await send_request("/tasks/" + task_uri_name, "DELETE");
+		if(!response.succeeded)
+		{
+			alert("The server returned HTTP status " +
+				response.message.http_status.toString() +
+				" with message " + response.message.error_message);
+			return;
+		}
+
+		await refresh_tasklist();
 	},
-	copy: function(task_name, task_uri_name) {
+	copy: async function(task_name, task_uri_name) {
 		console.log("copy");
 	}
 };

@@ -4,6 +4,8 @@
 
 #include <west/http_utils.hpp>
 
+#include <ranges>
+
 namespace
 {
 	enum class session_status{logged_in, logged_out};
@@ -66,10 +68,48 @@ namespace
 		enum session_status session_status)
 	{ return serve_resource(header, content, session_status); }
 
-	auto serve_task(west::http::request_header const&,
-		restore::storage_file&,
-		session_status)
+	auto serve_task(west::http::request_header const& header,
+		restore::storage_file& storage_file,
+		enum session_status session_status)
 	{
+		if(session_status != session_status::logged_in)
+		{
+			return std::pair{
+				west::http::finalize_state_result{
+					.http_status = west::http::status::unauthorized,
+					.error_message = west::make_unique_cstr(header.request_line.request_target.value())
+				},
+				restore::server_type{}
+			};
+		}
+
+		auto const uri = header.request_line.request_target.value().substr(strlen("/tasks/"));
+		auto const task_name_end = std::ranges::find(uri, '/');
+		auto const task_name = west::http::decode_uri_component(std::string_view{std::begin(uri), task_name_end});
+		auto const endpoint = std::string_view{task_name_end,std::end(uri)};
+		std::string file_path{"shared/tasks/"};
+		file_path.append(task_name);
+
+		if(endpoint.empty())
+		{
+			if(header.request_line.method == "DELETE")
+			{
+				printf("Deleting %s\n". file_path.c_str());
+				jopp::object ret{};
+				return std::pair{
+					west::http::finalize_state_result{},
+					restore::server_type{restore::json_response_server{ret}}
+				};
+			}
+			else
+			{
+				return std::pair{west::http::finalize_state_result{
+					.http_status = west::http::status::method_not_allowed,
+					.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
+				}, restore::server_type{}};
+			}
+		}
+
 		return std::pair{
 			west::http::finalize_state_result{
 				.http_status = west::http::status::not_implemented,

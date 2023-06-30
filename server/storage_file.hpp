@@ -38,6 +38,9 @@ namespace restore
 		void insert(std::span<std::byte const> data, std::string_view name)
 		{	return Wad64::insert(m_archive, Wad64::FileCreationMode::AllowCreation(), data, name); }
 
+		bool contains(std::string_view item)
+		{ return ls().contains(item); }
+
 	private:
 		Wad64::FdOwner m_fd;
 		Wad64::Archive m_archive;

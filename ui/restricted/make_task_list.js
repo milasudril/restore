@@ -15,13 +15,16 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 {
 	if(!response.succeeded)
 	{
-		show_error_message(element_factory, response.message.error_message, output_container);
+		show_error_message(element_factory,
+			"The server returned HTTP status " +
+			response.message.http_status.toString() + " with message " + response.message.error_message,
+			output_container);
 		return;
 	}
 
 	if(Object.keys(response).length == 0)
 	{
-		show_error_message(element_factory, "No error", output_container);
+		show_error_message(element_factory, "Task list is empty", output_container);
 		return;
 	}
 

@@ -9,10 +9,10 @@
 | /tasks                              | GET    | Returns a list of all tasks                            |
 | /tasks                              | POST   | Creates «task name»                                    |
 | /tasks/«encoded task name»          | DELETE | Deletes «task name»                                    |
-| /tasks/«encoded task name»/status   | GET    | Gets the process status of «task name»                 |
+| /tasks/«encoded task name»          | GET    | Dumps the latest result of «task name»                 |
+| /tasks/«encoded task name»/status   | GET    | Check if «task name» running or suspended              |
 | /tasks/«encoded task name»/status   | PUT    | Use to suspend/resume «task name»                      |
 | /tasks/«encoded task name»/progress | GET    | Tracks the progress of «task name»                     |
-| /tasks/«encoded task name»/result   | GET    | Dumps the latest result of «task name»                 |
 
 
 ## Data file organization

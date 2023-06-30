@@ -15,14 +15,39 @@ th.row-header{text-align: left}
 let pending_task_list = send_request("/tasks");
 
 let task_actions = {
-	get_result : async function(task_name, task_uri_name) {
-		console.log("get_result");
+	take_snapshot : async function(task_name, task_uri_name) {
+		let response = await send_request("/tasks/" + task_uri_name, "GET");
+		if(!response.succeeded)
+		{
+			alert("The server returned HTTP status " +
+				response.message.http_status.toString() +
+				" with message " + response.message.error_message);
+			return;
+		}
 	},
 	resume: async function(task_name, task_uri_name) {
-		console.log("resume");
+		let response = await send_request("/tasks/" + task_uri_name + "/status",
+			"PUT",
+			{mode: "running"});
+		if(!response.succeeded)
+		{
+			alert("The server returned HTTP status " +
+				response.message.http_status.toString() +
+				" with message " + response.message.error_message);
+			return;
+		}
 	},
 	suspend: async function(task_name, task_uri_name) {
-		console.log("suspend");
+		let response = await send_request("/tasks/" + task_uri_name + "/status",
+			"PUT",
+			{mode: "suspended"});
+		if(!response.succeeded)
+		{
+			alert("The server returned HTTP status " +
+				response.message.http_status.toString() +
+				" with message " + response.message.error_message);
+			return;
+		}
 	},
 	delete: async function(task_name, task_uri_name) {
 		let response = await send_request("/tasks/" + task_uri_name, "DELETE");
@@ -37,7 +62,18 @@ let task_actions = {
 		await refresh_tasklist();
 	},
 	copy: async function(task_name, task_uri_name) {
-		console.log("copy");
+		let response = await send_request("/tasks/" + task_uri_name,
+			"POST",
+			{new_name: prompt("Enter new task name")});
+		if(!response.succeeded)
+		{
+			alert("The server returned HTTP status " +
+				response.message.http_status.toString() +
+				" with message " + response.message.error_message);
+			return;
+		}
+
+		await refresh_tasklist();
 	}
 };
 

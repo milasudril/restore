@@ -56,9 +56,9 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			let button = element_factory.createElement("input");
 			button.setAttribute("type", "button");
 			button.addEventListener("mouseup", function(){
-				row_event_handler.get_result(task, task_uri_name);
+				row_event_handler.take_snapshot(task, task_uri_name);
 			});
-			button.setAttribute("value", "Get result");
+			button.setAttribute("value", "Take snapshot");
 			cell.appendChild(button);
 			row.appendChild(cell);
 		}

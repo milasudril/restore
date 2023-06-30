@@ -122,6 +122,8 @@ namespace
 			}
 		}
 
+		printf("%s %s\n", file_path.c_str(), std::data(endpoint));
+
 		return std::pair{
 			west::http::finalize_state_result{
 				.http_status = west::http::status::not_implemented,

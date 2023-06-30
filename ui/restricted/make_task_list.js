@@ -22,7 +22,7 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 		return;
 	}
 
-	if(Object.keys(response).length == 0)
+	if(Object.keys(response.message).length == 0)
 	{
 		show_error_message(element_factory, "Task list is empty", output_container);
 		return;

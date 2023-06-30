@@ -28,7 +28,7 @@ window.onload = async function() {
 	}
 }
 
-function submit_form(event, doc, subform)
+async function submit_form(event, doc, subform)
 {
 	event.preventDefault();
 
@@ -36,24 +36,19 @@ function submit_form(event, doc, subform)
 	output_object.name = doc.getElementById("task_name").value;
 	output_object.parameters = {};
 	serialize_form(subform, output_object.parameters);
-	message = JSON.stringify(output_object);
 
-	fetch("/tasks", {
-		method: "POST",
-		redirect: "error",
-		headers: {
-			"Accept": "application/json",
-			"Content-Type": "application/json"
-		},
-		body: message
-	}).then(function(response_message) {
-		return response_message.json();
-	}).then(function(response_object) {
-		if(response_object.result === "successful")
-		{ window.location.href = "mainpage.html"; }
-		else
-		{ window.alert(response_object.error_message); }
-	});
+	let result = await send_request("/tasks", "POST", output_object);
+	if(!response.succeeded)
+	{
+		alert("The server returned HTTP status " +
+			response.message.http_status.toString() + " with message " + response.message.error_message);
+		return;
+	}
+
+	if(response.message.result === "successful")
+	{ location.href = "mainpage.html"; }
+	else
+	{ window.alert(response.message.error_message); }
 
 	return false;
 }

@@ -23,30 +23,25 @@ function get_redirect()
 let redirect_to = get_redirect();
 clear_cookie(document, "redirected_from", location.hostname);
 
-function submit_form(event, doc, subform)
+async function submit_form(event, doc, subform)
 {
 	event.preventDefault();
 
 	let output_object = {}
 	serialize_form(subform, output_object);
-	let message = JSON.stringify(output_object);
 
-	fetch("/login", {
-		method: "POST",
-		redirect: "error",
-		headers: {
-			"Accept": "application/json",
-			"Content-Type": "application/json"
-		},
-		body: message
-	}).then(function(response_message) {
-		return response_message.json();
-	}).then(function(response_object) {
-		if(response_object.result === "successful")
-		{ window.location.href = redirect_to; }
-		else
-		{ window.alert("Invalid session key. Try with a different key."); }
-	});
+	let result = await send_request("/login", "POST", output_object);
+	if(!response.succeeded)
+	{
+		alert("The server returned HTTP status " +
+			response.message.http_status.toString() + " with message " + response.message.error_message);
+		return;
+	}
+
+	if(response.message.result === "successful")
+	{ location.href = redirect_to; }
+	else
+	{ window.alert("Invalid session key. Try with a different key."); }
 
 	return false;
 }

@@ -8,6 +8,7 @@
 th.row-header{text-align: left}
 	</style>
 	<script src="../public/utils.js"></script>
+	<script src="../public/check_session_cookie.js"></script>
 	<script src="make_form.js"></script>
 	<script src="../public/serialize_form.js"></script>
 
@@ -16,6 +17,7 @@ let pending_types = fetch_data("/parameter_types");
 let pending_params = fetch_data("/task_parameters");
 
 window.onload = async function() {
+	await redirect_if_not_logged_in(location, document);
 	let get_param_types_result = await pending_types;
 	let get_params_result = await pending_params;
 	if(get_param_types_result.succeeded && get_params_result.succeeded)

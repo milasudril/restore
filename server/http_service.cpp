@@ -116,26 +116,39 @@ namespace
 		}, restore::server_type{}};
 	}
 
-	auto serve_login_request(west::http::request_header const& header, std::string_view session_key)
+	auto serve_login_request(west::http::request_header const& header,
+		std::string_view session_key,
+		enum session_status session_status)
 	{
-		if(header.request_line.method != "POST")
+		if(header.request_line.method == "GET")
 		{
+			jopp::object result{};
+			if(session_status == session_status::logged_in)
+			{ result.insert("session_status", "logged_in"); }
+			else
+			{ result.insert("session_status", "looged_out"); }
+
 			return std::pair{
-				west::http::finalize_state_result{
-					.http_status = west::http::status::method_not_allowed,
-					.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
-				},
-				restore::server_type{}
+				west::http::finalize_state_result{},
+				restore::server_type{restore::json_response_server{result}}
 			};
 		}
 
-		return std::pair{
-			west::http::finalize_state_result{
-				.http_status = west::http::status::ok,
-				.error_message = nullptr,
-			},
-			restore::server_type{restore::login_server{session_key}}
-		};
+		if(header.request_line.method == "POST")
+		{
+			return std::pair{
+				west::http::finalize_state_result{
+					.http_status = west::http::status::ok,
+					.error_message = nullptr,
+				},
+				restore::server_type{restore::login_server{session_key}}
+			};
+		}
+
+		return std::pair{west::http::finalize_state_result{
+			.http_status = west::http::status::method_not_allowed,
+			.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
+		}, restore::server_type{}};
 	}
 
 	std::string_view resolve_resource(west::http::uri const& req_target)
@@ -243,7 +256,7 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target == "/login")
 	{
-		auto [retval, server] = serve_login_request(header, m_session_key);
+		auto [retval, server] = serve_login_request(header, m_session_key, session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}

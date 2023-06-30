@@ -21,7 +21,8 @@ namespace restore
 		{
 			fields.append("Content-Length", std::to_string(m_input_file.size()))
 				.append("Content-Type", std::string{m_resource_info.mime_type})
-				.append("Last-Modified", to_string(m_resource_info.last_modified));
+				.append("Last-Modified", to_string(m_resource_info.last_modified))
+				.append("Cache-Control", "max-age=86400");
 
 			west::http::finalize_state_result validation_result{};
 			validation_result.http_status = west::http::status::ok;

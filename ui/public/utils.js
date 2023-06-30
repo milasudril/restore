@@ -8,7 +8,7 @@ function find_if(array, predicate)
 	return ret === - 1? array.length : ret;
 }
 
-function fetch_data(url)
+function send_request(url)
 {
 	return fetch(url, {
 		headers: {

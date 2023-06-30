@@ -13,8 +13,8 @@ th.row-header{text-align: left}
 	<script src="../public/serialize_form.js"></script>
 
 <script>
-let pending_types = fetch_data("/parameter_types");
-let pending_params = fetch_data("/task_parameters");
+let pending_types = send_request("/parameter_types");
+let pending_params = send_request("/task_parameters");
 
 window.onload = async function() {
 	await redirect_if_not_logged_in(location, document);

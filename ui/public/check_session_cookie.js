@@ -2,7 +2,7 @@
 
 async function redirect_if_not_logged_in(loc, doc)
 {
-	let response = await fetch_data("/login");
+	let response = await send_request("/login");
 
 	if(!response.succeeded)
 	{	return; }

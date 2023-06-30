@@ -12,7 +12,7 @@ th.row-header{text-align: left}
 	<script src="make_task_list.js"></script>
 	<script>
 
-let pending_task_list = fetch_data("/tasks");
+let pending_task_list = send_request("/tasks");
 
 let task_actions = {
 	"get_result" : function(task_name, task_uri_name) {
@@ -41,7 +41,7 @@ window.onload = async function() {
 async function refresh_tasklist()
 {
 	await redirect_if_not_logged_in(location, document);
-	let get_task_list_result = await fetch_data("/tasks");
+	let get_task_list_result = await send_request("/tasks");
 	let tasklist = document.getElementById("tasklist");
 	tasklist.replaceChildren();
 	fill_tasklist(get_task_list_result, document, tasklist, task_actions);

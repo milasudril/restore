@@ -25,6 +25,15 @@ window.onload = async function() {
 	fill_tasklist(get_task_list_result, document, document.getElementById("tasklist"), perform_task_action);
 }
 
+async function refresh_tasklist()
+{
+	await redirect_if_not_logged_in(location, document);
+	let get_task_list_result = await fetch_data("/tasks");
+	let tasklist = document.getElementById("tasklist");
+	tasklist.replaceChildren();
+	fill_tasklist(get_task_list_result, document, tasklist, perform_task_action);
+}
+
 	</script>
 	</head>
 	<body>
@@ -34,8 +43,8 @@ window.onload = async function() {
 				<h1>Tasks</h1>
 				<nav id="formactions">
 					<ul>
-						<li><a href="mainpage.html">Refresh task list</a></li>
-						<li><a href="create_task.html">Create new task</a></li>
+						<li><input type="button" value="Refresh" onclick="refresh_tasklist()"></li>
+						<li><input type="button" value="Create new task" onclick="location.href='create_task.html'"></li>
 					</ul>
 				</nav>
 				<table id="tasklist">

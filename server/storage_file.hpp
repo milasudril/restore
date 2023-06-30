@@ -38,8 +38,8 @@ namespace restore
 		void insert(std::span<std::byte const> data, std::string_view name)
 		{	return Wad64::insert(m_archive, Wad64::FileCreationMode::AllowCreation(), data, name); }
 
-		bool contains(std::string_view item)
-		{ return ls().contains(item); }
+		void remove(std::string_view item)
+		{ m_archive.remove(item); }
 
 	private:
 		Wad64::FdOwner m_fd;
@@ -47,6 +47,7 @@ namespace restore
 	};
 
 	jopp::object generate_entity_list(storage_file const& file, std::string_view prefix);
+	size_t remove_entries(storage_file& file, std::string_view prefix);
 
 }
 

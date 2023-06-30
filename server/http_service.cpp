@@ -86,16 +86,28 @@ namespace
 		auto const uri = header.request_line.request_target.value().substr(strlen("/tasks/"));
 		auto const task_name_end = std::ranges::find(uri, '/');
 		auto const task_name = west::http::decode_uri_component(std::string_view{std::begin(uri), task_name_end});
-		auto const endpoint = std::string_view{task_name_end,std::end(uri)};
+		auto const endpoint = std::string_view{task_name_end, std::end(uri)};
 		std::string file_path{"shared/tasks/"};
-		file_path.append(task_name);
+		file_path.append(task_name).append("/");
 
 		if(endpoint.empty())
 		{
 			if(header.request_line.method == "DELETE")
 			{
-				printf("Deleting %s\n". file_path.c_str());
+				auto const n = remove_entries(storage_file, file_path);
+				if(n == 0)
+				{
+					return std::pair{
+						west::http::finalize_state_result{
+							.http_status = west::http::status::not_found,
+							.error_message = west::make_unique_cstr(task_name)
+						},
+						restore::server_type{}
+					};
+				}
+
 				jopp::object ret{};
+				ret.insert("number_of_removed_files", static_cast<jopp::number>(n));
 				return std::pair{
 					west::http::finalize_state_result{},
 					restore::server_type{restore::json_response_server{ret}}

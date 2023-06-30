@@ -43,23 +43,24 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 
 		{
 			let cell = element_factory.createElement("td");
+			let button = element_factory.createElement("input");
+			button.setAttribute("type", "button");
+			button.addEventListener("mouseup", function(){
+				row_event_handler.get_parameters(task, task_uri_name);
+			});
+			button.setAttribute("value", "Get parameters");
+			cell.appendChild(button);
+			row.appendChild(cell);
+		}
+
+
+		{
+			let cell = element_factory.createElement("td");
 			let progress = element_factory.createElement("progress");
 			progress.setAttribute("restore-task-ref", task_uri_name);
 			progress.setAttribute("restore-task-name", task);
 			progress.setAttribute("value", "0.5");
 			cell.appendChild(progress);
-			row.appendChild(cell);
-		}
-
-		{
-			let cell = element_factory.createElement("td");
-			let button = element_factory.createElement("input");
-			button.setAttribute("type", "button");
-			button.addEventListener("mouseup", function(){
-				row_event_handler.take_snapshot(task, task_uri_name);
-			});
-			button.setAttribute("value", "Take snapshot");
-			cell.appendChild(button);
 			row.appendChild(cell);
 		}
 
@@ -80,9 +81,9 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			let button = element_factory.createElement("input");
 			button.setAttribute("type", "button");
 			button.addEventListener("mouseup", function(){
-				row_event_handler.delete(task, task_uri_name);
+				row_event_handler.take_snapshot(task, task_uri_name);
 			});
-			button.setAttribute("value", "Delete");
+			button.setAttribute("value", "Take snapshot");
 			cell.appendChild(button);
 			row.appendChild(cell);
 		}
@@ -92,17 +93,36 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			let button = element_factory.createElement("input");
 			button.setAttribute("type", "button");
 			button.addEventListener("mouseup", function(){
-				row_event_handler.copy(task, task_uri_name);
+				row_event_handler.reset(task, task_uri_name);
 			});
-			button.setAttribute("value", "Copy");
+			button.setAttribute("value", "Reset");
 			cell.appendChild(button);
 			row.appendChild(cell);
 		}
 
+		{
+			let cell = element_factory.createElement("td");
+			let button = element_factory.createElement("input");
+			button.setAttribute("type", "button");
+			button.addEventListener("mouseup", function(){
+				row_event_handler.clone(task, task_uri_name);
+			});
+			button.setAttribute("value", "Clone");
+			cell.appendChild(button);
+			row.appendChild(cell);
+		}
 
-/*
-		TODO: Will need to GET status
-*/
+		{
+			let cell = element_factory.createElement("td");
+			let button = element_factory.createElement("input");
+			button.setAttribute("type", "button");
+			button.addEventListener("mouseup", function(){
+				row_event_handler.delete(task, task_uri_name);
+			});
+			button.setAttribute("value", "Delete");
+			cell.appendChild(button);
+			row.appendChild(cell);
+		}
 
 		output_container.appendChild(row);
 	}

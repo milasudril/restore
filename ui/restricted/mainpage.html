@@ -15,8 +15,8 @@ th.row-header{text-align: left}
 let pending_task_list = send_request("/tasks");
 
 let task_actions = {
-	take_snapshot : async function(task_name, task_uri_name) {
-		let response = await send_request("/tasks/" + task_uri_name, "GET");
+	get_parameters: async function(task_name, task_uri_name) {
+		let response = await send_request("/tasks/" + task_uri_name + "/parameters", "GET");
 		if(!response.succeeded)
 		{
 			alert("The server returned HTTP status " +
@@ -26,7 +26,7 @@ let task_actions = {
 		}
 	},
 	resume: async function(task_name, task_uri_name) {
-		let response = await send_request("/tasks/" + task_uri_name + "/status",
+		let response = await send_request("/tasks/" + task_uri_name + "/running_status",
 			"PUT",
 			{mode: "running"});
 		if(!response.succeeded)
@@ -38,7 +38,7 @@ let task_actions = {
 		}
 	},
 	suspend: async function(task_name, task_uri_name) {
-		let response = await send_request("/tasks/" + task_uri_name + "/status",
+		let response = await send_request("/tasks/" + task_uri_name + "/running_status",
 			"PUT",
 			{mode: "suspended"});
 		if(!response.succeeded)
@@ -49,8 +49,30 @@ let task_actions = {
 			return;
 		}
 	},
-	delete: async function(task_name, task_uri_name) {
-		let response = await send_request("/tasks/" + task_uri_name, "DELETE");
+	take_snapshot : async function(task_name, task_uri_name) {
+		let response = await send_request("/tasks/" + task_uri_name + "/system_state", "GET");
+		if(!response.succeeded)
+		{
+			alert("The server returned HTTP status " +
+				response.message.http_status.toString() +
+				" with message " + response.message.error_message);
+			return;
+		}
+	},
+	reset : async function(task_name, task_uri_name) {
+		let response = await send_request("/tasks/" + task_uri_name + "/system_state", "DELETE");
+		if(!response.succeeded)
+		{
+			alert("The server returned HTTP status " +
+				response.message.http_status.toString() +
+				" with message " + response.message.error_message);
+			return;
+		}
+	},
+	clone: async function(task_name, task_uri_name) {
+		let response = await send_request("/tasks/" + task_uri_name,
+			"POST",
+			{new_name: prompt("Enter new task name")});
 		if(!response.succeeded)
 		{
 			alert("The server returned HTTP status " +
@@ -61,10 +83,8 @@ let task_actions = {
 
 		await refresh_tasklist();
 	},
-	copy: async function(task_name, task_uri_name) {
-		let response = await send_request("/tasks/" + task_uri_name,
-			"POST",
-			{new_name: prompt("Enter new task name")});
+	delete: async function(task_name, task_uri_name) {
+		let response = await send_request("/tasks/" + task_uri_name, "DELETE");
 		if(!response.succeeded)
 		{
 			alert("The server returned HTTP status " +

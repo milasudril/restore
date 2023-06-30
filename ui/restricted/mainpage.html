@@ -14,15 +14,28 @@ th.row-header{text-align: left}
 
 let pending_task_list = fetch_data("/tasks");
 
-function perform_task_action()
-{
-	window.alert("Hej");
-}
+let task_actions = {
+	"get_result" : function(task_name, task_uri_name) {
+		console.log("get_result");
+	},
+	"resume": function(task_name, task_uri_name) {
+		console.log("resume");
+	},
+	"suspend": function(task_name, task_uri_name) {
+		console.log("suspend");
+	},
+	"delete": function(task_name, task_uri_name) {
+		console.log("delete");
+	},
+	"copy": function(task_name, task_uri_name) {
+		console.log("copy");
+	}
+};
 
 window.onload = async function() {
 	await redirect_if_not_logged_in(location, document);
 	let get_task_list_result = await pending_task_list;
-	fill_tasklist(get_task_list_result, document, document.getElementById("tasklist"), perform_task_action);
+	fill_tasklist(get_task_list_result, document, document.getElementById("tasklist"), task_actions);
 }
 
 async function refresh_tasklist()
@@ -31,7 +44,7 @@ async function refresh_tasklist()
 	let get_task_list_result = await fetch_data("/tasks");
 	let tasklist = document.getElementById("tasklist");
 	tasklist.replaceChildren();
-	fill_tasklist(get_task_list_result, document, tasklist, perform_task_action);
+	fill_tasklist(get_task_list_result, document, tasklist, task_actions);
 }
 
 	</script>

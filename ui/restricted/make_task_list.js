@@ -55,10 +55,9 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			let cell = element_factory.createElement("td");
 			let button = element_factory.createElement("input");
 			button.setAttribute("type", "button");
-			button.setAttribute("restore-task-ref", task_uri_name);
-			button.setAttribute("restore-task-name", task);
-			button.addEventListener("mouseup", row_event_handler);
-			button.setAttribute("restore-task-action", "get_result");
+			button.addEventListener("mouseup", function(){
+				row_event_handler.get_result(task, task_uri_name);
+			});
 			button.setAttribute("value", "Get result");
 			cell.appendChild(button);
 			row.appendChild(cell);
@@ -68,10 +67,9 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			let cell = element_factory.createElement("td");
 			let button = element_factory.createElement("input");
 			button.setAttribute("type", "button");
-			button.setAttribute("restore-task-ref", task_uri_name);
-			button.setAttribute("restore-task-name", task);
-			button.addEventListener("mouseup", row_event_handler);
-			button.setAttribute("restore-task-action", "Resume");  // TODO: Depends on task status
+			button.addEventListener("mouseup", function(){
+				row_event_handler.resume(task, task_uri_name);  // TODO: Depends on task status
+			});
 			button.setAttribute("value", "Resume");  // TODO: Depends on task status
 			cell.appendChild(button);
 			row.appendChild(cell);
@@ -81,11 +79,22 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			let cell = element_factory.createElement("td");
 			let button = element_factory.createElement("input");
 			button.setAttribute("type", "button");
-			button.setAttribute("restore-task-ref", task_uri_name);
-			button.setAttribute("restore-task-name", task);
-			button.addEventListener("mouseup", row_event_handler);
-			button.setAttribute("restore-task-action", "delete");
+			button.addEventListener("mouseup", function(){
+				row_event_handler.delete(task, task_uri_name);
+			});
 			button.setAttribute("value", "Delete");
+			cell.appendChild(button);
+			row.appendChild(cell);
+		}
+
+		{
+			let cell = element_factory.createElement("td");
+			let button = element_factory.createElement("input");
+			button.setAttribute("type", "button");
+			button.addEventListener("mouseup", function(){
+				row_event_handler.copy(task, task_uri_name);
+			});
+			button.setAttribute("value", "Copy");
 			cell.appendChild(button);
 			row.appendChild(cell);
 		}

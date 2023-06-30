@@ -100,7 +100,7 @@ namespace
 					return std::pair{
 						west::http::finalize_state_result{
 							.http_status = west::http::status::not_found,
-							.error_message = west::make_unique_cstr(task_name)
+							.error_message = west::make_unique_cstr(header.request_line.request_target.value())
 						},
 						restore::server_type{}
 					};

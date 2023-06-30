@@ -8,12 +8,16 @@ function find_if(array, predicate)
 	return ret === - 1? array.length : ret;
 }
 
-function send_request(url)
+function send_request(url, method = "GET", body)
 {
 	return fetch(url, {
+		method: method,
+		redirect: "error",
 		headers: {
-			"Accept": "application/json"
-		}
+			"Accept": "application/json",
+			"Content-Type": "application/json"
+		},
+		body: body? JSON.stringify(body) : null
 	}).then(function(res) {
 		return {succeeded: res.ok, pending_message: res.json()};
 	}).then(async function(data){

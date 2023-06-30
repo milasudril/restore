@@ -15,19 +15,19 @@ th.row-header{text-align: left}
 let pending_task_list = send_request("/tasks");
 
 let task_actions = {
-	"get_result" : function(task_name, task_uri_name) {
+	get_result : function(task_name, task_uri_name) {
 		console.log("get_result");
 	},
-	"resume": function(task_name, task_uri_name) {
+	resume: function(task_name, task_uri_name) {
 		console.log("resume");
 	},
-	"suspend": function(task_name, task_uri_name) {
+	suspend: function(task_name, task_uri_name) {
 		console.log("suspend");
 	},
 	"delete": function(task_name, task_uri_name) {
 		console.log("delete");
 	},
-	"copy": function(task_name, task_uri_name) {
+	copy: function(task_name, task_uri_name) {
 		console.log("copy");
 	}
 };

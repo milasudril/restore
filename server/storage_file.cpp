@@ -31,7 +31,6 @@ jopp::object restore::generate_entity_list(storage_file const& file, std::string
 size_t restore::remove_entries(storage_file& file, std::string_view prefix)
 {
 	auto const& items = file.ls();
-	fprintf(stderr, "Removing %s\n", std::data(prefix));
 
 	auto i = items.lower_bound(prefix);
 	std::vector<std::string_view> to_be_removed;

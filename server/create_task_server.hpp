@@ -98,7 +98,6 @@ namespace restore
 		}
 
 	private:
-		std::string_view m_session_key;
 		std::unique_ptr<jopp::container> m_request_body;
 		jopp::parser m_request_body_parser;
 

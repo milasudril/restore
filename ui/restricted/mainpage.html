@@ -13,6 +13,16 @@ th.row-header{text-align: left}
 	<script>
 let pending_task_list = send_request("/tasks");
 
+function save_object_as_json(object, name)
+{
+	let link = document.createElement("a");
+	let file = new Blob([JSON.stringify(object)], {type: "application/json"});
+	link.download = name;
+	link.href = URL.createObjectURL(file);
+	link.click();
+	URL.revokeObjectURL(link.href);
+}
+
 let task_actions = {
 	get_parameters: async function(task_name, task_uri_name) {
 		let response = await send_request("/tasks/" + task_uri_name + "/parameters", "GET");
@@ -23,6 +33,8 @@ let task_actions = {
 				" with message " + response.message.error_message);
 			return;
 		}
+
+		save_object_as_json(response.message, task_uri_name + "_parameters.json");
 	},
 	resume: async function(task_name, task_uri_name) {
 		let response = await send_request("/tasks/" + task_uri_name + "/running_status",

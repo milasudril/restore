@@ -81,9 +81,11 @@ let task_actions = {
 		}
 	},
 	clone: async function(task_name, task_uri_name) {
-		let response = await send_request("/tasks/" + task_uri_name,
-			"POST",
-			{new_name: prompt("Enter new task name")});
+		let new_name = prompt("Enter a new task name");
+		if(new_name === null)
+		{ return; }
+
+		let response = await send_request("/tasks/" + task_uri_name, "POST", {new_name: new_name});
 		if(!response.succeeded)
 		{
 			alert("The server returned HTTP status " +

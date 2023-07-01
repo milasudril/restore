@@ -1,26 +1,17 @@
 {
-	"http_server":
+	"http_socket":
 	{
-		"socket":
+		"type": "inet",
+		"params":
 		{
-			"type": "inet",
-			"params":
+			"remote_address": "127.0.0.1",
+			"server_port_range":
 			{
-				"remote_address": "127.0.0.1",
-				"server_port_range":
-				{
-					"min": 49152,
-					"max": 65535
-				}
+				"min": 49152,
+				"max": 65535
 			}
 		}
 	},
-	"resource_file_path":
-	{
-		"value": "__targets_rel/ui.wad64"
-	},
-	"storage_file_path": 
-	{
-		"value": "tasks.wad64"
-	}
+	"resource_file": "__targets_rel/ui.wad64",
+	"storage_file": "tasks.wad64"
 }

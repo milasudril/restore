@@ -244,15 +244,11 @@ int main(int argc, char** argv)
 	}
 
 	auto const cfg = restore::json::load_object(argv[1]);
-	auto const& http_cfg = cfg.get_field_as<jopp::object>("http_server");
-	auto const& http_server_socket_cfg = http_cfg.get_field_as<jopp::object>("socket");
+	auto const& http_server_socket_cfg = cfg.get_field_as<jopp::object>("http_socket");
+
 	auto http_socket = restore::create_server_socket(http_server_socket_cfg);
-
-	auto const& resource_file_path = cfg.get_field_as<jopp::object>("resource_file_path");
-	restore::resource_file resources{resource_file_path.get_field_as<jopp::string>("value").c_str()};
-
-	auto const& storage_file_path = cfg.get_field_as<jopp::object>("storage_file_path");
-	restore::storage_file storage{storage_file_path.get_field_as<jopp::string>("value").c_str()};
+	restore::resource_file resources{cfg.get_field_as<jopp::string>("resource_file").c_str()};
+	restore::storage_file storage{cfg.get_field_as<jopp::string>("storage_file").c_str()};
 
 	jopp::json_buffer param_types{jopp::container{get_parameter_types()}};
 	jopp::json_buffer task_params{jopp::container{get_task_parameters()}};

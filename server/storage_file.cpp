@@ -64,8 +64,8 @@ size_t restore::copy_entries(storage_file& file, std::string_view prefix, std::s
 		std::string dest{new_prefix};
 		dest.append("/").append(filename);
 
-		printf("%s -> %s\n", std::data(item), std::data(dest));
+		insert(file.archive(), Wad64::FileCreationMode::AllowCreation(), file.archive(), item, dest);
 	}
 
-	return 0;
+	return std::size(to_be_copyied);
 }

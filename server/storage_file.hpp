@@ -42,9 +42,9 @@ namespace restore
 		{ m_archive.remove(item); }
 
 		auto get_file(std::string_view name) const
-		{
-			return Wad64::InputFile{m_archive, name};
-		}
+		{ return Wad64::InputFile{m_archive, name}; }
+
+		auto& archive() { return m_archive; }
 
 	private:
 		Wad64::FdOwner m_fd;

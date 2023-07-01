@@ -1,6 +1,5 @@
 //@	{"target":{"name":"restore.o"}}
 
-#include "./config.hpp"
 #include "./server_socket.hpp"
 #include "./resource_file.hpp"
 #include "./http_service.hpp"
@@ -244,7 +243,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	auto const cfg = restore::config::load(argv[1]);
+	auto const cfg = restore::json::load_object(argv[1]);
 	auto const& http_cfg = cfg.get_field_as<jopp::object>("http_server");
 	auto const& http_server_socket_cfg = http_cfg.get_field_as<jopp::object>("socket");
 	auto http_socket = restore::create_server_socket(http_server_socket_cfg);

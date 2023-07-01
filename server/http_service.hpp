@@ -13,6 +13,7 @@
 #include "./login_server.hpp"
 #include "./redirect_server.hpp"
 #include "./create_task_server.hpp"
+#include "./clone_task_server.hpp"
 
 template<>
 struct jopp::object_converter<west::http::status>
@@ -45,7 +46,8 @@ namespace restore
 		cached_json_response_server,
 		login_server,
 		redirect_server,
-		create_task_server>;
+		create_task_server,
+		clone_task_server>;
 
 	class http_service
 	{

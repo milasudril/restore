@@ -28,21 +28,44 @@ jopp::object restore::generate_entity_list(storage_file const& file, std::string
 	return ret;
 }
 
+namespace
+{
+	std::vector<std::string_view> collect_entries(std::reference_wrapper<restore::storage_file const> file,
+		std::string_view prefix,
+		size_t entry_count_estimate = 4)
+	{
+		auto const& items = file.get().ls();
+		auto i = items.lower_bound(prefix);
+		std::vector<std::string_view> ret;
+		ret.reserve(entry_count_estimate);
+		while(i != std::end(items) && i->first.starts_with(prefix))
+		{
+			ret.push_back(i->first);
+			++i;
+		}
+		return ret;
+	}
+}
+
 size_t restore::remove_entries(storage_file& file, std::string_view prefix)
 {
-	auto const& items = file.ls();
-
-	auto i = items.lower_bound(prefix);
-	std::vector<std::string_view> to_be_removed;
-	to_be_removed.reserve(4);
-	while(i != std::end(items) && i->first.starts_with(prefix))
-	{
-		to_be_removed.push_back(i->first);
-		++i;
-	}
-
+	auto const to_be_removed = collect_entries(file, prefix);
 	for(auto const& item : to_be_removed)
 	{ file.remove(item); }
-
 	return std::size(to_be_removed);
+}
+
+size_t restore::copy_entries(storage_file& file, std::string_view prefix, std::string_view new_prefix)
+{
+	auto const to_be_copyied = collect_entries(file, prefix);
+	for(auto const& item : to_be_copyied)
+	{
+		auto const filename = item.substr(std::size(prefix));
+		std::string dest{new_prefix};
+		dest.append("/").append(filename);
+
+		printf("%s -> %s\n", std::data(item), std::data(dest));
+	}
+
+	return 0;
 }

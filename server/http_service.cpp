@@ -113,13 +113,19 @@ namespace
 					restore::server_type{restore::json_response_server{ret}}
 				};
 			}
-			else
+
+			if(header.request_line.method == "POST")
 			{
-				return std::pair{west::http::finalize_state_result{
-					.http_status = west::http::status::method_not_allowed,
-					.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
-				}, restore::server_type{}};
+				return std::pair{
+					west::http::finalize_state_result{},
+					restore::server_type{restore::clone_task_server{storage_file, std::move(file_path)}}
+				};
 			}
+
+			return std::pair{west::http::finalize_state_result{
+				.http_status = west::http::status::method_not_allowed,
+				.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
+			}, restore::server_type{}};
 		}
 
 		if(endpoint == "/parameters")

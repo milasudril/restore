@@ -19,7 +19,7 @@ namespace restore
 	{
 		jopp::string name;
 		jopp::string mime_type;
-		std::chrono::system_clock::time_point last_modified;
+		std::optional<std::chrono::system_clock::time_point> last_modified;
 	};
 
 	inline resource_info create_resource_info(std::string_view name, jopp::object const& obj)

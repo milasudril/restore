@@ -37,7 +37,7 @@ async function submit_form(event, doc, subform)
 	output_object.parameters = {};
 	serialize_form(subform, output_object.parameters);
 
-	let result = await send_request("/tasks", "POST", output_object);
+	let response = await send_request("/tasks", "POST", output_object);
 	if(!response.succeeded)
 	{
 		alert("The server returned HTTP status " +

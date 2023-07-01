@@ -20,9 +20,12 @@ namespace restore
 		auto finalize_state(west::http::field_map& fields) const
 		{
 			fields.append("Content-Length", std::to_string(m_input_file.size()))
-				.append("Content-Type", std::string{m_resource_info.mime_type})
-				.append("Last-Modified", to_string(m_resource_info.last_modified))
-				.append("Cache-Control", "max-age=86400");
+				.append("Content-Type", std::string{m_resource_info.mime_type});
+			if(m_resource_info.last_modified.has_value())
+			{
+				fields.append("Last-Modified", to_string(*m_resource_info.last_modified))
+					.append("Cache-Control", "max-age=86400");
+			}
 
 			west::http::finalize_state_result validation_result{};
 			validation_result.http_status = west::http::status::ok;

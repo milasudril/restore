@@ -122,12 +122,51 @@ namespace
 			}
 		}
 
-		printf("%s %s\n", file_path.c_str(), std::data(endpoint));
+		if(endpoint == "/parameters")
+		{
+			if(header.request_line.method == "GET")
+			{
+				try
+				{
+					file_path.append("parameters.json");
+					return std::pair{
+						west::http::finalize_state_result{},
+						restore::server_type{
+							restore::resource_server{
+								storage_file.get_file(file_path),
+								restore::resource_info{
+									.name = std::string{},
+									.mime_type = "application/json",
+									.last_modified = std::nullopt
+								}
+							}
+						}
+					};
+				}
+				catch(std::exception const& err)
+				{
+					return std::pair{
+						west::http::finalize_state_result{
+							.http_status = west::http::status::internal_server_error,
+							.error_message = west::make_unique_cstr(err.what())
+						},
+						restore::server_type{}
+					};
+				}
+			}
+			else
+			{
+				return std::pair{west::http::finalize_state_result{
+					.http_status = west::http::status::method_not_allowed,
+					.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
+				}, restore::server_type{}};
+			}
+		}
 
 		return std::pair{
 			west::http::finalize_state_result{
-				.http_status = west::http::status::not_implemented,
-				.error_message = west::make_unique_cstr("Under construction")
+				.http_status = west::http::status::not_found,
+				.error_message = west::make_unique_cstr(header.request_line.request_target.value())
 			},
 			restore::server_type{}
 		};

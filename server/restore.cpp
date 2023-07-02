@@ -63,8 +63,10 @@ int main(int argc, char** argv)
 		.resource_file = restore::resource_file{cfg.get_field_as<jopp::string>("resource_file").c_str()},
 		.storage_file = restore::storage_file{cfg.get_field_as<jopp::string>("storage_file").c_str()},
 		.session_key = generate_session_key(),
-		.param_types = jopp::json_buffer{restore::get_parameter_types()},
-		.task_params = jopp::json_buffer{restore::get_task_parameters()}
+		.task_metadata{
+			.parameter_types = jopp::json_buffer{restore::get_parameter_types()},
+			.parameters = jopp::json_buffer{restore::get_task_parameters()}
+		}
 	};
 
 	west::service_registry services{};

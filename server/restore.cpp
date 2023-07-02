@@ -62,8 +62,8 @@ int main(int argc, char** argv)
 	restore::resource_file resources{cfg.get_field_as<jopp::string>("resource_file").c_str()};
 	restore::storage_file storage{cfg.get_field_as<jopp::string>("storage_file").c_str()};
 
-	jopp::json_buffer param_types{jopp::container{restore::get_parameter_types()}};
-	jopp::json_buffer task_params{jopp::container{restore::get_task_parameters()}};
+	jopp::json_buffer param_types{restore::get_parameter_types()};
+	jopp::json_buffer task_params{restore::get_task_parameters()};
 
 	auto const session_key = generate_session_key();
 

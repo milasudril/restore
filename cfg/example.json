@@ -12,6 +12,9 @@
 			}
 		}
 	},
-	"resource_file": "__targets_rel/ui.wad64",
-	"storage_file": "tasks.wad64"
+	"middleware_instance":
+	{
+		"resource_file": "__targets_rel/ui.wad64",
+		"storage_file": "tasks.wad64"
+	}
 }

@@ -56,12 +56,12 @@ int main(int argc, char** argv)
 
 	auto const cfg = restore::json::load_object(argv[1]);
 	auto const& http_server_socket_cfg = cfg.get_field_as<jopp::object>("http_socket");
-
 	auto http_socket = restore::create_server_socket(http_server_socket_cfg);
 
+	auto const& mw_config = cfg.get_field_as<jopp::object>("middleware_instance");
 	restore::middleware_instance mw_instance{
-		.resource_file = restore::resource_file{cfg.get_field_as<jopp::string>("resource_file").c_str()},
-		.storage_file = restore::storage_file{cfg.get_field_as<jopp::string>("storage_file").c_str()},
+		.resource_file = restore::resource_file{mw_config.get_field_as<jopp::string>("resource_file").c_str()},
+		.storage_file = restore::storage_file{mw_config.get_field_as<jopp::string>("storage_file").c_str()},
 		.session_key = generate_session_key(),
 		.task_metadata{
 			.parameter_types = jopp::json_buffer{restore::get_parameter_types()},

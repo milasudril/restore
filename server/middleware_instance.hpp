@@ -1,3 +1,5 @@
+//@	{"dependencies_extra":[{"ref": "./middleware_instance.o", "rel":"implementation"}]}
+
 #ifndef RESTORE_MIDDLEWARE_INSTANCE_HPP
 #define RESTORE_MIDDLEWARE_INSTANCE_HPP
 
@@ -5,6 +7,7 @@
 #include "./storage_file.hpp"
 #include "./task_metadata.hpp"
 
+#include <jopp/types.hpp>
 #include <string>
 
 namespace restore
@@ -16,6 +19,12 @@ namespace restore
 		std::string session_key;
 		struct task_metadata task_metadata;
 	};
+
+	std::string generate_session_key(size_t length_in_bytes);
+
+	std::string get_session_key(jopp::object const& key_cfg);
+
+	middleware_instance create_middleware_instance(jopp::object const& cfg);
 }
 
 #endif

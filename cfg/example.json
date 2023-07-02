@@ -15,6 +15,14 @@
 	"middleware_instance":
 	{
 		"resource_file": "__targets_rel/ui.wad64",
-		"storage_file": "tasks.wad64"
+		"storage_file": "tasks.wad64",
+		"session_key":
+		{
+			"type": "generated",
+			"params":
+			{
+				"length": 32
+			}
+		}
 	}
 }

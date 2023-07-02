@@ -3,9 +3,8 @@
 #ifndef RESTORE_HTTP_SERVICE_HPP
 #define RESTORE_HTTP_SERVICE_HPP
 
-#include "./json_loaders.hpp"
-#include "./resource_file.hpp"
-#include "./storage_file.hpp"
+#include "./middleware_instance.hpp"
+
 #include "./resource_server.hpp"
 #include "./null_server.hpp"
 #include "./json_response_server.hpp"
@@ -52,22 +51,7 @@ namespace restore
 	class http_service
 	{
 	public:
-		explicit http_service(std::reference_wrapper<resource_file const> res_file,
-			std::reference_wrapper<storage_file> storage,
-			std::string const& session_key,
-			jopp::json_buffer_view param_types,
-			jopp::json_buffer_view task_params) = delete;
-
-		explicit http_service(std::reference_wrapper<resource_file const> res_file,
-			std::reference_wrapper<storage_file> storage,
-			std::string_view session_key,
-			jopp::json_buffer_view param_types,
-			jopp::json_buffer_view task_params):
-			m_res_file{res_file},
-			m_storage_file{storage},
-			m_session_key{session_key},
-			m_param_types{param_types},
-			m_task_params{task_params}
+		explicit http_service(middleware_instance& mw_instance):m_mw_instance{mw_instance}
 		{ }
 
 		west::http::finalize_state_result finalize_state(west::http::request_header const& header);
@@ -102,11 +86,7 @@ namespace restore
 		}
 
 	private:
-		std::reference_wrapper<resource_file const> m_res_file;
-		std::reference_wrapper<storage_file> m_storage_file;
-		std::string_view m_session_key;
- 		jopp::json_buffer_view m_param_types;
- 		jopp::json_buffer_view m_task_params;
+		std::reference_wrapper<middleware_instance> m_mw_instance;
 
 		server_type m_current_server;
 	};

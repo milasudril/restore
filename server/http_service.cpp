@@ -343,7 +343,7 @@ namespace
 west::http::finalize_state_result restore::http_service::finalize_state(west::http::request_header const& header)
 {
 	auto const session_cookies = get_cookies(header);
-	auto const session_status = get_session_status(session_cookies, m_session_key);
+	auto const session_status = get_session_status(session_cookies, m_mw_instance.get().session_key);
 	auto const& req_target = header.request_line.request_target;
 
 	if(req_target == "/")
@@ -355,42 +355,46 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target == "/login")
 	{
-		auto [retval, server] = serve_login_request(header, m_session_key, session_status);
+		auto [retval, server] = serve_login_request(header, m_mw_instance.get().session_key, session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}
 
 	if(req_target == "/task_parameters")
 	{
-		auto [retval, server] = serve_task_parameters(header, m_task_params, session_status);
+		auto [retval, server] = serve_task_parameters(header,
+			jopp::json_buffer_view{m_mw_instance.get().task_params},
+			session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}
 
 	if(req_target == "/parameter_types")
 	{
-		auto [retval, server] = serve_parameter_types(header, m_param_types, session_status);
+		auto [retval, server] = serve_parameter_types(header,
+			jopp::json_buffer_view{m_mw_instance.get().param_types},
+			session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}
 
 	if(req_target == "/tasks")
 	{
-		auto [retval, server] = serve_tasks(header, m_storage_file, session_status);
+		auto [retval, server] = serve_tasks(header, m_mw_instance.get().storage_file, session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}
 
 	if(req_target.value().starts_with("/tasks/"))
 	{
-		auto [retval, server] = serve_task(header, m_storage_file, session_status);
+		auto [retval, server] = serve_task(header, m_mw_instance.get().storage_file, session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}
 
 	if(auto res_name = resolve_resource(req_target); !res_name.empty())
 	{
-		auto [retval, server] = serve_resource(header, m_res_file, res_name, session_status);
+		auto [retval, server] = serve_resource(header, m_mw_instance.get().resource_file, res_name, session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}

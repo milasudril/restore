@@ -58,28 +58,23 @@ int main(int argc, char** argv)
 	auto const& http_server_socket_cfg = cfg.get_field_as<jopp::object>("http_socket");
 
 	auto http_socket = restore::create_server_socket(http_server_socket_cfg);
-	restore::resource_file resources{cfg.get_field_as<jopp::string>("resource_file").c_str()};
-	restore::storage_file storage{cfg.get_field_as<jopp::string>("storage_file").c_str()};
 
-	jopp::json_buffer param_types{restore::get_parameter_types()};
-	jopp::json_buffer task_params{restore::get_task_parameters()};
-
-	auto const session_key = generate_session_key();
+	restore::middleware_instance mw_instance{
+		.resource_file = restore::resource_file{cfg.get_field_as<jopp::string>("resource_file").c_str()},
+		.storage_file = restore::storage_file{cfg.get_field_as<jopp::string>("storage_file").c_str()},
+		.session_key = generate_session_key(),
+		.param_types = jopp::json_buffer{restore::get_parameter_types()},
+		.task_params = jopp::json_buffer{restore::get_task_parameters()}
+	};
 
 	west::service_registry services{};
-	enroll_http_service<restore::http_service>(services,
-		std::move(http_socket),
-		std::cref(resources),
-		std::ref(storage),
-		std::string_view{session_key},
-		std::cref(param_types),
-		std::cref(task_params))
+	enroll_http_service<restore::http_service>(services, std::move(http_socket), std::ref(mw_instance))
 		.enroll(west::io::signal_fd{west::io::make_sigmask(SIGINT, SIGTERM)}, signal_handler{});
 
 	// TODO: replace localhost with something more generig (ip address or host name)
 	printf("The Restore application is available from http://localhost:%u. You may manage tasks by "
 		"opening this URL in your favorite browser. Using CTRL+LMB works in most graphical TTY:s. Your "
-		"key for this session is\n%s\n", http_socket.port(), session_key.c_str());
+		"key for this session is\n%s\n", http_socket.port(), mw_instance.session_key.c_str());
 	services.process_events();
 
 	return 0;

@@ -44,7 +44,6 @@ std::string generate_session_key()
 	}
 
 	return ret;
-
 };
 
 int main(int argc, char** argv)

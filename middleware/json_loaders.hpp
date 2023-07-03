@@ -30,8 +30,6 @@ namespace restore::json
 
 		return std::move(*obj);
 	}
-
-
 }
 
 #endif

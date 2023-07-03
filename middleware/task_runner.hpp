@@ -77,7 +77,7 @@ namespace restore
 		running_state running_status() const
 		{ return m_running_status; }
 
-		~task_wrapper()
+		~task_runner()
 		{ suspend(); }
 
 	private:

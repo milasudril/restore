@@ -6,6 +6,7 @@
 #include "./resource_file.hpp"
 #include "./storage_file.hpp"
 #include "./task_metadata.hpp"
+#include "./task_runner.hpp"
 
 #include <jopp/types.hpp>
 #include <string>
@@ -18,6 +19,7 @@ namespace restore
 		class storage_file storage_file;
 		std::string session_key;
 		task_metadata taskinfo;
+		std::map<std::string, task_runner<type_erased_task>> tasks{};
 	};
 
 	std::string generate_session_key(size_t length_in_bytes);

@@ -13,15 +13,19 @@ namespace restore
 	class task_runner
 	{
 	public:
+		enum class running_state{suspended, running, completed};
+
 		explicit task_runner(Task&& task):
 			m_should_stop{false},
-			m_task{std::move(task)}
+			m_task{std::move(task)},
+			m_running_state{running_state::suspended}
 		{}
 
 		void suspend()
 		{
 			if(m_runner.joinable())
 			{
+				m_running_state = running_state::suspended;
 				m_should_stop = true;
 				m_runner.join();
 			}
@@ -67,6 +71,7 @@ namespace restore
 		{
 			std::lock_guard lock{m_task_mtx};
 			m_task.reset();
+			m_running_state = m_runner.joinable()? running_state::running : running_state::suspended;
 		}
 
 		~task_wrapper()
@@ -74,16 +79,22 @@ namespace restore
 
 	private:
 		std::atomic<bool> m_should_stop;
+		std::atomic<running_state> m_running_state;
 		Task m_task;
 		mutable std::mutex m_task_mtx;
 		std::thread m_runner;
 
 		void do_run()
 		{
+			m_running_state = running_state::running;
 			while(!m_should_stop.load())
 			{
 				std::lock_guard lock{m_task_mtx};
-				m_task->step();
+				if(m_task->step() == task_step_result::task_is_completed)
+				{
+					m_running_state = running_state::completed;
+					return;
+				}
 			}
 		}
 	};

@@ -6,11 +6,13 @@
 
 namespace restore
 {
+	enum class task_step_result{task_is_completed, keep_going};
+
 	class abstract_task
 	{
 	public:
 		virtual ~abstract_task() = default;
-		virtual void step() = 0;
+		virtual task_step_result step() = 0;
 		virtual double get_progress() const = 0;
 		virtual void set_parameters(json::object_ref params) = 0;
 		virtual void dump_state(int output_fd) const = 0;
@@ -24,8 +26,8 @@ namespace restore
 	{
 		explicit task_adaptor(Task&& task): m_task{std::move(task)}{}
 
-		void step() override
-		{ m_task.step(); }
+		task_step_result step() override
+		{ return m_task.step(); }
 
 		double get_progress() const override
 		{ return m_task.get_progress(); }
@@ -86,8 +88,8 @@ namespace restore
 		void reset()
 		{ m_task->reset(); }
 
-		void step()
-		{ m_task->step(); }
+		[[nodiscard]] task_step_result step()
+		{ return m_task->step(); }
 
 	private:
 		std::unique_ptr<abstract_task> m_task;

@@ -4,6 +4,7 @@
 #define RESTORE_SERVER_DUMMYPARAMS_HPP
 
 #include "./jopp_wrapper.hpp"
+#include "./task.hpp"
 
 #include <jopp/types.hpp>
 #include <thread>
@@ -26,13 +27,16 @@ namespace restore
 
 		void reset(){ iter_count = 0; }
 
-		void step()
+		task_step_result step()
 		{
 			if(iter_count != iter_count_max)
 			{
 				++iter_count;
 				std::this_thread::sleep_for(std::chrono::seconds{10});
+				return task_step_result::keep_going;
 			}
+
+			return task_step_result::task_is_completed;
 		}
 
 		size_t iter_count{0};

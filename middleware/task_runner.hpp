@@ -39,29 +39,34 @@ namespace restore
 			return m_task.get_progress();
 		}
 
-
 		void set_parameters(json::object_ref params)
 		{
 			std::lock_guard lock{m_task_mtx};
 			m_task.set_parameters(params);
 		}
 
-		void suspend_and_dump_state(state_sink sink)
+		void dump_state(int output_fd) const
+		{
+			std::lock_guard lock{m_task_mtx};
+			m_task.dump_state(output_fd);
+		}
+
+		void suspend_and_dump_state(int output_fd)
 		{
 			suspend();
-			dump_state(sink);
+			dump_state(output_fd);
 		}
 
-		void set_state(state_source src)
+		void set_state(int output_fd)
 		{
 			std::lock_guard lock{m_task_mtx};
-			m_task.set_state(src);
+			m_task.set_state(output_fd);
 		}
 
-		void dump_state(state_sink sink) const
+		void reset()
 		{
 			std::lock_guard lock{m_task_mtx};
-			m_task.dump_state(sink);
+			m_task.reset();
 		}
 
 		~task_wrapper()

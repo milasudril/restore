@@ -8,6 +8,17 @@ namespace restore
 {
 	enum class task_step_result{task_is_completed, keep_going};
 
+	template<class T>
+	concept task = requires(T x, json::object_ref params, int fd)
+	{
+		{x.step()} -> std::same_as<task_step_result>;
+		{x.get_progress()} -> std::same_as<double>;
+		{x.set_parameters(params)} -> std::same_as<void>;
+		{x.dump_state(fd)} -> std::same_as<void>;
+		{x.set_state(fd)} -> std::same_as<void>;
+		{x.reset()} -> std::same_as<void>;
+	};
+
 	class abstract_task
 	{
 	public:
@@ -21,7 +32,7 @@ namespace restore
 		virtual std::unique_ptr<abstract_task> clone() const = 0;
 	};
 
-	template<class Task>
+	template<task Task>
 	struct task_adaptor : public abstract_task
 	{
 		explicit task_adaptor(Task&& task): m_task{std::move(task)}{}
@@ -54,7 +65,7 @@ namespace restore
 	class type_erased_task
 	{
 	public:
-		template<class Task>
+		template<task Task>
 		explicit type_erased_task(Task&& task):
 			m_task{std::make_unique<task_adaptor<Task>>(std::forward<Task>(task))}
 		{}
@@ -95,7 +106,7 @@ namespace restore
 		std::unique_ptr<abstract_task> m_task;
 	};
 
-	template<class Task>
+	template<task Task>
 	type_erased_task create_task()
 	{ return type_erased_task{Task{}}; }
 

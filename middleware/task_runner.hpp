@@ -9,7 +9,7 @@
 
 namespace restore
 {
-	template<class Task>
+	template<task Task>
 	class task_runner
 	{
 	public:

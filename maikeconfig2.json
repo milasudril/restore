@@ -38,7 +38,6 @@
                             "-Werror",
                             "-Wconversion",
                             "-Wno-psabi",
-                            "-Iinclude",
                             "-fconcepts-diagnostics-depth=2"
                         ],
                         "iquote": [
@@ -119,9 +118,7 @@
             ],
             "fullpath_input_filter": [
                 "^\\.",
-                "^__",
-                "extproj",
-                "include"
+                "^__"
             ],
             "recursive": 1
         }

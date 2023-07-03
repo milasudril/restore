@@ -20,7 +20,11 @@ namespace restore::json
 		explicit object_ref(std::reference_wrapper<jopp::object const> ref):m_ref{ref}{}
 
 		template<class T>
-		auto get_field_as(std::string_view key) const;
+		requires std::is_same_v<T, std::string>
+		std::string const& get_field_as(std::string_view key) const;
+
+		template<class T>
+		T get_field_as(std::string_view key) const;
 
 		bool contains(std::string_view key) const;
 

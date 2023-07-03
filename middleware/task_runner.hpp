@@ -18,14 +18,14 @@ namespace restore
 		explicit task_runner(Task&& task):
 			m_should_stop{false},
 			m_task{std::move(task)},
-			m_running_state{running_state::suspended}
+			m_running_status{running_state::suspended}
 		{}
 
 		void suspend()
 		{
 			if(m_runner.joinable())
 			{
-				m_running_state = running_state::suspended;
+				m_running_status = running_state::suspended;
 				m_should_stop = true;
 				m_runner.join();
 			}
@@ -71,28 +71,31 @@ namespace restore
 		{
 			std::lock_guard lock{m_task_mtx};
 			m_task.reset();
-			m_running_state = m_runner.joinable()? running_state::running : running_state::suspended;
+			m_running_status = m_runner.joinable()? running_state::running : running_state::suspended;
 		}
+
+		running_state running_status() const
+		{ return m_running_status; }
 
 		~task_wrapper()
 		{ suspend(); }
 
 	private:
 		std::atomic<bool> m_should_stop;
-		std::atomic<running_state> m_running_state;
+		std::atomic<running_state> m_running_status;
 		Task m_task;
 		mutable std::mutex m_task_mtx;
 		std::thread m_runner;
 
 		void do_run()
 		{
-			m_running_state = running_state::running;
+			m_running_status = running_state::running;
 			while(!m_should_stop.load())
 			{
 				std::lock_guard lock{m_task_mtx};
 				if(m_task->step() == task_step_result::task_is_completed)
 				{
-					m_running_state = running_state::completed;
+					m_running_status = running_state::completed;
 					return;
 				}
 			}

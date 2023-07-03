@@ -83,7 +83,7 @@ namespace restore
 			while(!m_should_stop.load())
 			{
 				std::lock_guard lock{m_task_mtx};
-				m_task->run();
+				m_task->step();
 			}
 		}
 	};

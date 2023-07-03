@@ -26,15 +26,17 @@ namespace restore
 
 		void reset(){ iter_count = 0; }
 
-		void run()
+		void step()
 		{
-			iter_count += 1;
-			std::this_thread::sleep_for(std::chrono::seconds{10});
+			if(iter_count != iter_count_max)
+			{
+				++iter_count;
+				std::this_thread::sleep_for(std::chrono::seconds{10});
+			}
 		}
 
 		size_t iter_count{0};
 		size_t iter_count_max{1024};
-
 	};
 }
 

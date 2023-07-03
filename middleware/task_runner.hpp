@@ -9,6 +9,17 @@
 
 namespace restore
 {
+	class abstract_task
+	{
+	public:
+		virtual ~abstract_task() = default;
+		virtual double get_progress() const = 0;
+		virtual void set_parameters(json::object_ref params) = 0;
+		virtual void dump_state(int output_fd) const = 0;
+		virtual void set_state(int input_fd) = 0;
+		virtual void reset() = 0;
+	};
+
 	template<class Task>
 	class task_runner
 	{

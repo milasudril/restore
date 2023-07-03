@@ -17,14 +17,15 @@ namespace restore
 		class resource_file resource_file;
 		class storage_file storage_file;
 		std::string session_key;
-		struct task_metadata task_metadata;
+		task_metadata taskinfo;
 	};
 
 	std::string generate_session_key(size_t length_in_bytes);
 
 	std::string get_session_key(jopp::object const& key_cfg);
 
-	middleware_instance create_middleware_instance(jopp::object const& cfg);
+	middleware_instance create_middleware_instance(jopp::object const& cfg,
+		task_metadata const& taskinfo);
 }
 
 #endif

@@ -66,11 +66,7 @@ bool restore::task_registry::create_task(std::string_view task_name, jopp::objec
 	m_storage_file.get().insert(std::as_bytes(std::span{params_json}), param_file_name);
 
 	auto const ip = m_tasks.emplace(task_name, m_create_task());
-	if(ip.second)
-	{
-		// FIXME: Need to rollback changes to storage file
-		return false;
-	}
+	assert(ip.second);
 
 	ip.first->second.set_parameters(json::object_ref{params});
 	ip.first->second.set_state(-1);  // TODO: It should be possible to upload initial state via rest
@@ -97,7 +93,6 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 
 	auto const new_params = get_param_file_name(target_name);
 
-	// FIXME: Need rollback
 	insert(m_storage_file.get().archive(),
 		Wad64::FileCreationMode::AllowCreation(),
 		m_storage_file.get().archive(),

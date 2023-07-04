@@ -34,14 +34,13 @@ restore::task_registry::task_registry(task_factory create_task, storage_file& st
 		auto const separator_index = std::ranges::find(path, '/');
 		std::string_view task_name{std::begin(path), separator_index};
 
-		// It is probably cheaper to do two lookups instead of loading the parameter file multiple
-		// times
-		if(m_tasks.contains(task_name))
+		auto ip = m_tasks.emplace(task_name, m_create_task());
+		if(!ip.second)
 		{ continue; }
 
 		auto const params = json::load_object(storage_file.get_file(get_param_file_name(task_name)));
-		auto i = m_tasks.emplace(task_name, m_create_task(json::object_ref{params}));
-		i.first->second.set_state(1);
+		ip.first->second.set_parameters(json::object_ref{params});
+		ip.first->second.set_state(-1);  // TODO: Load state from file
 	}
 }
 
@@ -49,9 +48,12 @@ void restore::task_registry::create_task(std::string_view task_name, jopp::objec
 {
 	validate_task_name(task_name);
 
-	auto const ip = m_tasks.emplace(task_name, m_create_task(json::object_ref{params}));
+	auto const ip = m_tasks.emplace(task_name, m_create_task());
 	if(ip.second)
 	{ throw std::runtime_error{"Task already exists"}; }
+
+	ip.first->second.set_parameters(json::object_ref{params});
+	ip.first->second.set_state(-1);  // TODO: It should be possible to upload initial state via rest
 
 	auto const params_json = to_string(params);
 	m_storage_file.get().insert(std::as_bytes(std::span{params_json}), get_param_file_name(task_name));

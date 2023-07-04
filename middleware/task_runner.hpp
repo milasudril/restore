@@ -61,6 +61,12 @@ namespace restore
 			m_task.set_state(output_fd);
 		}
 
+		void set_parameters(json::object_ref obj)
+		{
+			std::lock_guard lock{m_task_mtx};
+			m_task.set_parameters(obj);
+		}
+
 		void reset()
 		{
 			std::lock_guard lock{m_task_mtx};

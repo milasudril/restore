@@ -52,6 +52,11 @@ namespace restore
 	};
 
 	jopp::object generate_entity_list(storage_file const& file, std::string_view prefix);
+
+	std::vector<std::string_view> collect_entries(std::reference_wrapper<storage_file const> file,
+		std::string_view prefix,
+		size_t entry_count_estimate);
+
 	size_t remove_entries(storage_file& file, std::string_view prefix);
 	size_t copy_entries(storage_file& file, std::string_view prefix, std::string_view new_prefix);
 

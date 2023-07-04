@@ -86,8 +86,11 @@ namespace restore
 		~task_runner()
 		{ suspend(); }
 
-		Task const& task() const
-		{ return m_task; }
+		Task task() const
+		{
+			std::lock_guard lock{m_task_mtx};
+			return m_task;
+		}
 
 	private:
 		std::atomic<bool> m_should_stop;

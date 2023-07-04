@@ -37,9 +37,9 @@ namespace
 	}
 }
 
-restore::task_registry::task_registry(task_factory create_task, storage_file& storage_file):
+restore::task_registry::task_registry(char const* storage_file_name, task_factory create_task):
 	m_create_task{create_task},
-	m_storage_file{storage_file}
+	m_storage_file{storage_file{storage_file_name}}
 {
 	auto const entries = collect_entries(m_storage_file, task_prefix, 16);
 	for(auto const item : entries)
@@ -52,7 +52,7 @@ restore::task_registry::task_registry(task_factory create_task, storage_file& st
 		if(!ip.second)
 		{ continue; }
 
-		auto const params = json::load_object(storage_file.get_file(get_param_file_name(task_name)));
+		auto const params = json::load_object(m_storage_file.get_file(get_param_file_name(task_name)));
 		ip.first->second.set_parameters(json::object_ref{params});
 		ip.first->second.set_state(-1);  // TODO: Load state from file
 	}
@@ -62,13 +62,13 @@ bool restore::task_registry::create_task(std::string_view task_name, jopp::objec
 {
 	validate_task_name(task_name);
 	auto const params_json = to_string(params);
-	m_storage_file.get().insert(std::as_bytes(std::span{params_json}), get_param_file_name(task_name));
+	m_storage_file.insert(std::as_bytes(std::span{params_json}), get_param_file_name(task_name));
 
 	// TODO: Fill with data from client
-	m_storage_file.get().insert(std::span<std::byte const>{}, get_init_file_name(task_name));
+	m_storage_file.insert(std::span<std::byte const>{}, get_init_file_name(task_name));
 
 	// TODO: This entry should be created when a snapshot or copy is requested
-	m_storage_file.get().insert(std::span<std::byte const>{}, get_state_file_name(task_name));
+	m_storage_file.insert(std::span<std::byte const>{}, get_state_file_name(task_name));
 
 	auto const ip = m_tasks.emplace(task_name, m_create_task());
 	assert(ip.second);
@@ -85,9 +85,9 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 	if(m_tasks.erase(std::string{task_name}) == 0)
 	{ return false; }
 
-	m_storage_file.get().remove(get_param_file_name(task_name));
-	m_storage_file.get().remove(get_state_file_name(task_name));
-	m_storage_file.get().remove(get_init_file_name(task_name));
+	m_storage_file.remove(get_param_file_name(task_name));
+	m_storage_file.remove(get_state_file_name(task_name));
+	m_storage_file.remove(get_init_file_name(task_name));
 
 	return true;
 }
@@ -98,21 +98,21 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 
 	auto const new_params = get_param_file_name(target_name);
 
-	insert(m_storage_file.get().archive(),
+	insert(m_storage_file.archive(),
 		Wad64::FileCreationMode::AllowCreation(),
-		m_storage_file.get().archive(),
+		m_storage_file.archive(),
 		get_param_file_name(src_name),
 		get_param_file_name(target_name));
 
-	insert(m_storage_file.get().archive(),
+	insert(m_storage_file.archive(),
 		Wad64::FileCreationMode::AllowCreation(),
-		m_storage_file.get().archive(),
+		m_storage_file.archive(),
 		get_state_file_name(src_name),
 		get_state_file_name(target_name));
 
-	insert(m_storage_file.get().archive(),
+	insert(m_storage_file.archive(),
 		Wad64::FileCreationMode::AllowCreation(),
-		m_storage_file.get().archive(),
+		m_storage_file.archive(),
 		get_init_file_name(src_name),
 		get_init_file_name(target_name));
 

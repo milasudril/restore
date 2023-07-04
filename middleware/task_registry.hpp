@@ -11,7 +11,7 @@ namespace restore
 	class task_registry
 	{
 	public:
-		explicit task_registry(task_factory create_task, storage_file& storage_file);
+		explicit task_registry(char const* storage_file_name, task_factory create_task);
 
 		[[nodiscard]] bool create_task(std::string_view task_name, jopp::object const& params);
 
@@ -22,7 +22,7 @@ namespace restore
 	private:
 		task_factory m_create_task;
 		std::map<std::string, task_runner<type_erased_task>, std::less<>> m_tasks;
-		std::reference_wrapper<storage_file> m_storage_file;
+		storage_file m_storage_file;
 	};
 };
 

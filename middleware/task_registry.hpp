@@ -13,9 +13,11 @@ namespace restore
 	public:
 		explicit task_registry(task_factory create_task, storage_file& storage_file);
 
-		void create_task(std::string_view task_name, jopp::object const& params);
+		[[nodiscard]] bool create_task(std::string_view task_name, jopp::object const& params);
 
-		bool delete_task(std::string_view task_name);
+		[[nodiscard]] bool delete_task(std::string_view task_name);
+
+		[[nodiscard]] bool clone_task(std::string_view src_name, std::string_view target_name);
 
 	private:
 		task_factory m_create_task;

@@ -15,6 +15,12 @@ namespace restore
 	public:
 		enum class running_state{suspended, running, completed};
 
+		explicit task_runner(Task const& task):
+			m_should_stop{false},
+			m_running_status{running_state::suspended},
+			m_task{task}
+		{}
+
 		explicit task_runner(Task&& task):
 			m_should_stop{false},
 			m_running_status{running_state::suspended},
@@ -79,6 +85,9 @@ namespace restore
 
 		~task_runner()
 		{ suspend(); }
+
+		Task const& task() const
+		{ return m_task; }
 
 	private:
 		std::atomic<bool> m_should_stop;

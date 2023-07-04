@@ -22,6 +22,13 @@ namespace
 		return ret;
 	}
 
+	std::string get_init_file_name(std::string_view task_name)
+	{
+		std::string ret{task_prefix};
+		ret.append(task_name).append("/initial_state.dat");
+		return ret;
+	}
+
 	std::string get_state_file_name(std::string_view task_name)
 	{
 		std::string ret{task_prefix};
@@ -51,19 +58,24 @@ restore::task_registry::task_registry(task_factory create_task, storage_file& st
 	}
 }
 
-void restore::task_registry::create_task(std::string_view task_name, jopp::object const& params)
+bool restore::task_registry::create_task(std::string_view task_name, jopp::object const& params)
 {
 	validate_task_name(task_name);
+	auto const params_json = to_string(params);
+	auto const param_file_name = get_param_file_name(task_name);
+	m_storage_file.get().insert(std::as_bytes(std::span{params_json}), param_file_name);
 
 	auto const ip = m_tasks.emplace(task_name, m_create_task());
 	if(ip.second)
-	{ throw std::runtime_error{"Task already exists"}; }
+	{
+		// FIXME: Need to rollback changes to storage file
+		return false;
+	}
 
 	ip.first->second.set_parameters(json::object_ref{params});
 	ip.first->second.set_state(-1);  // TODO: It should be possible to upload initial state via rest
 
-	auto const params_json = to_string(params);
-	m_storage_file.get().insert(std::as_bytes(std::span{params_json}), get_param_file_name(task_name));
+	return true;
 }
 
 bool restore::task_registry::delete_task(std::string_view task_name)
@@ -74,6 +86,41 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 
 	m_storage_file.get().remove(get_param_file_name(task_name));
 	m_storage_file.get().remove(get_state_file_name(task_name));
+	m_storage_file.get().remove(get_init_file_name(task_name));
+
+	return true;
+}
+
+[[nodiscard]] bool restore::task_registry::clone_task(std::string_view src_name, std::string_view target_name)
+{
+	validate_task_name(target_name);
+
+	auto const new_params = get_param_file_name(target_name);
+
+	// FIXME: Need rollback
+	insert(m_storage_file.get().archive(),
+		Wad64::FileCreationMode::AllowCreation(),
+		m_storage_file.get().archive(),
+		get_param_file_name(src_name),
+		get_param_file_name(target_name));
+
+	insert(m_storage_file.get().archive(),
+		Wad64::FileCreationMode::AllowCreation(),
+		m_storage_file.get().archive(),
+		get_state_file_name(src_name),
+		get_state_file_name(target_name));
+
+	insert(m_storage_file.get().archive(),
+		Wad64::FileCreationMode::AllowCreation(),
+		m_storage_file.get().archive(),
+		get_init_file_name(src_name),
+		get_init_file_name(target_name));
+
+	auto const src_item = m_tasks.find(src_name);
+	if(src_item == std::end(m_tasks))
+	{ return false; }
+
+	m_tasks.emplace(target_name, src_item->second.task());
 
 	return true;
 }

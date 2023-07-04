@@ -15,6 +15,8 @@ namespace restore
 
 		void create_task(std::string_view task_name, jopp::object const& params);
 
+		bool delete_task(std::string_view task_name);
+
 	private:
 		task_factory m_create_task;
 		std::map<std::string, task_runner<type_erased_task>, std::less<>> m_tasks;

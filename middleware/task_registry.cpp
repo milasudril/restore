@@ -21,6 +21,13 @@ namespace
 		ret.append(task_name).append("/parameters.json");
 		return ret;
 	}
+
+	std::string get_state_file_name(std::string_view task_name)
+	{
+		std::string ret{task_prefix};
+		ret.append(task_name).append("/current_state.dat");
+		return ret;
+	}
 }
 
 restore::task_registry::task_registry(task_factory create_task, storage_file& storage_file):
@@ -57,4 +64,16 @@ void restore::task_registry::create_task(std::string_view task_name, jopp::objec
 
 	auto const params_json = to_string(params);
 	m_storage_file.get().insert(std::as_bytes(std::span{params_json}), get_param_file_name(task_name));
+}
+
+bool restore::task_registry::delete_task(std::string_view task_name)
+{
+	// TODO: remove type-cast in c++23
+	if(m_tasks.erase(std::string{task_name}) == 0)
+	{ return false; }
+
+	m_storage_file.get().remove(get_param_file_name(task_name));
+	m_storage_file.get().remove(get_state_file_name(task_name));
+
+	return true;
 }

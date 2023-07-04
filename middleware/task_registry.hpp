@@ -11,9 +11,7 @@ namespace restore
 	class task_registry
 	{
 	public:
-		static constexpr char const* task_prefix = "shared/tasks/";
-
-		explicit task_registry(storage_file& storage_file, task_factory create_task);
+		explicit task_registry(task_factory create_task, storage_file& storage_file);
 
 		void create_task(std::string_view task_name, jopp::object const& params);
 

@@ -5,6 +5,18 @@
 #include <west/http_utils.hpp>
 #include <jopp/serializer.hpp>
 
+namespace
+{
+	constexpr char const* task_prefix = "shared/tasks/";
+}
+
+restore::task_registry::task_registry(task_factory create_task, storage_file& storage_file):
+	m_create_task{create_task},
+	m_storage_file{storage_file}
+{
+	// TODO: recover all tasks from storage file
+}
+
 void restore::task_registry::create_task(std::string_view task_name, jopp::object const& params)
 {
 	if(std::ranges::any_of(task_name, [](char ch) {return ch == '/' || ch == '\\';}))

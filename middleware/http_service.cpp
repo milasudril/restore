@@ -131,7 +131,6 @@ namespace
 			{
 				try
 				{
-					file_path.append("parameters.json");
 					return std::pair{
 						west::http::finalize_state_result{},
 						restore::server_type{

@@ -62,8 +62,13 @@ bool restore::task_registry::create_task(std::string_view task_name, jopp::objec
 {
 	validate_task_name(task_name);
 	auto const params_json = to_string(params);
-	auto const param_file_name = get_param_file_name(task_name);
-	m_storage_file.get().insert(std::as_bytes(std::span{params_json}), param_file_name);
+	m_storage_file.get().insert(std::as_bytes(std::span{params_json}), get_param_file_name(task_name));
+
+	// TODO: Fill with data from client
+	m_storage_file.get().insert(std::span<std::byte const>{}, get_init_file_name(task_name));
+
+	// TODO: This entry should be created when a snapshot or copy is requested
+	m_storage_file.get().insert(std::span<std::byte const>{}, get_state_file_name(task_name));
 
 	auto const ip = m_tasks.emplace(task_name, m_create_task());
 	assert(ip.second);

@@ -2,7 +2,7 @@
 #define RESTORE_CREATE_TASK_SERVER_HPP
 
 #include "./http_request_result.hpp"
-#include "./storage_file.hpp"
+#include "./task_registry.hpp"
 
 #include <west/http_message_header.hpp>
 #include <compare>
@@ -12,12 +12,12 @@ namespace restore
 	class create_task_server
 	{
 	public:
-		explicit create_task_server(storage_file& storage_file):
+		explicit create_task_server(task_registry& tasks):
 			m_request_body{std::make_unique<jopp::container>()},
 			m_request_body_parser{*m_request_body},
 			m_resp_ptr{nullptr},
 			m_bytes_to_read{0},
-			m_storage_file{storage_file}
+			m_tasks{tasks}
 		{ }
 
 		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
@@ -34,17 +34,7 @@ namespace restore
 				auto const& task_name = obj->get_field_as<jopp::string>("name");
 				auto const& params = obj->get_field_as<jopp::object>("parameters");
 
-				// TODO: Pass params to client application for validation. Since the client application may
-				//       only know about one task, it is for validation only.
-
-				if(std::ranges::any_of(task_name, [](char ch) {return ch == '/' || ch == '\\';}))
-				{ throw std::runtime_error{"Invalid task name"}; }
-
-				std::string res_name{"shared/tasks/"};
-				res_name.append(task_name)
-					.append("/parameters.json");
-				auto const params_json = jopp::to_string(params);
-				m_storage_file.get().insert(std::as_bytes(std::span{params_json}), res_name);
+				m_tasks.get().create_task(task_name, params);
 
 				jopp::object resp_obj{};
 				resp_obj.insert("result", "successful");
@@ -105,7 +95,7 @@ namespace restore
 		char const* m_resp_ptr;
 		size_t m_bytes_to_read;
 
-		std::reference_wrapper<storage_file> m_storage_file;
+		std::reference_wrapper<task_registry> m_tasks;
 	};
 }
 

@@ -69,7 +69,7 @@ namespace
 	{ return serve_resource(header, content, session_status); }
 
 	auto serve_task(west::http::request_header const& header,
-		restore::storage_file& storage_file,
+		restore::task_registry& tasks,
 		enum session_status session_status)
 	{
 		if(session_status != session_status::logged_in)
@@ -85,17 +85,14 @@ namespace
 
 		auto const uri = header.request_line.request_target.value().substr(strlen("/tasks/"));
 		auto const task_name_end = std::ranges::find(uri, '/');
-		auto const task_name = west::http::decode_uri_component(std::string_view{std::begin(uri), task_name_end});
+		auto task_name = west::http::decode_uri_component(std::string_view{std::begin(uri), task_name_end});
 		auto const endpoint = std::string_view{task_name_end, std::end(uri)};
-		std::string file_path{"shared/tasks/"};
-		file_path.append(task_name).append("/");
 
 		if(endpoint.empty())
 		{
 			if(header.request_line.method == "DELETE")
 			{
-				auto const n = remove_entries(storage_file, file_path);
-				if(n == 0)
+				if(!tasks.delete_task(task_name))
 				{
 					return std::pair{
 						west::http::finalize_state_result{
@@ -107,7 +104,7 @@ namespace
 				}
 
 				jopp::object ret{};
-				ret.insert("number_of_removed_files", static_cast<jopp::number>(n));
+				ret.insert("result", "successful");
 				return std::pair{
 					west::http::finalize_state_result{},
 					restore::server_type{restore::json_response_server{ret}}
@@ -118,7 +115,7 @@ namespace
 			{
 				return std::pair{
 					west::http::finalize_state_result{},
-					restore::server_type{restore::clone_task_server{storage_file, std::move(file_path)}}
+					restore::server_type{restore::clone_task_server{tasks, std::move(task_name)}}
 				};
 			}
 
@@ -139,7 +136,7 @@ namespace
 						west::http::finalize_state_result{},
 						restore::server_type{
 							restore::resource_server{
-								storage_file.get_file(file_path),
+								tasks.get_parameter_file(task_name),
 								restore::resource_info{
 									.name = std::string{},
 									.mime_type = "application/json",
@@ -179,7 +176,7 @@ namespace
 	}
 
 	auto serve_tasks(west::http::request_header const& header,
-		restore::storage_file& storage_file,
+		restore::task_registry& tasks,
 		enum session_status session_status)
 	{
 		if(session_status != session_status::logged_in)
@@ -197,7 +194,7 @@ namespace
 		{
 			return std::pair{
 				west::http::finalize_state_result{},
-				restore::server_type{restore::json_response_server{generate_entity_list(storage_file, "shared/tasks/")}}
+				restore::server_type{restore::json_response_server{get_entries_as_json(tasks)}}
 			};
 		}
 
@@ -205,7 +202,7 @@ namespace
 		{
 			return std::pair{
 				west::http::finalize_state_result{},
-				restore::server_type{restore::create_task_server{storage_file}}
+				restore::server_type{restore::create_task_server{tasks}}
 			};
 		}
 
@@ -380,14 +377,14 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 
 	if(req_target == "/tasks")
 	{
-		auto [retval, server] = serve_tasks(header, m_mw_instance.get().storage_file, session_status);
+		auto [retval, server] = serve_tasks(header, m_mw_instance.get().tasks, session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}
 
 	if(req_target.value().starts_with("/tasks/"))
 	{
-		auto [retval, server] = serve_task(header, m_mw_instance.get().storage_file, session_status);
+		auto [retval, server] = serve_task(header, m_mw_instance.get().tasks, session_status);
 		m_current_server = std::move(server);
 		return retval;
 	}

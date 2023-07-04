@@ -2,7 +2,7 @@
 #define RESTORE_CLONE_TASK_SERVER_HPP
 
 #include "./http_request_result.hpp"
-#include "./storage_file.hpp"
+#include "./task_registry.hpp"
 
 #include <west/http_message_header.hpp>
 #include <compare>
@@ -12,13 +12,13 @@ namespace restore
 	class clone_task_server
 	{
 	public:
-		explicit clone_task_server(storage_file& storage_file, std::string&& source):
+		explicit clone_task_server(task_registry& tasks, std::string&& source):
 			m_source{std::move(source)},
 			m_request_body{std::make_unique<jopp::container>()},
 			m_request_body_parser{*m_request_body},
 			m_resp_ptr{nullptr},
 			m_bytes_to_read{0},
-			m_storage_file{storage_file}
+			m_tasks{tasks}
 		{ }
 
 		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
@@ -33,13 +33,7 @@ namespace restore
 				{ throw std::runtime_error{"Expected request to be an object"}; }
 
 				auto const& new_name = obj->get_field_as<jopp::string>("new_name");
-				if(std::ranges::any_of(new_name, [](char ch) {return ch == '/' || ch == '\\';}))
-				{ throw std::runtime_error{"Invalid task name"}; }
-
-				std::string new_path{"shared/tasks/"};
-				new_path.append(new_name);
-				auto const n = copy_entries(m_storage_file, m_source, new_path);
-				if(n == 0)
+				if(!m_tasks.get().clone_task(m_source, new_name))
 				{
 					return west::http::finalize_state_result{
 						.http_status = west::http::status::not_found,
@@ -107,7 +101,7 @@ namespace restore
 		char const* m_resp_ptr;
 		size_t m_bytes_to_read;
 
-		std::reference_wrapper<storage_file> m_storage_file;
+		std::reference_wrapper<task_registry> m_tasks;
 	};
 }
 

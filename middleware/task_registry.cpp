@@ -58,7 +58,7 @@ restore::task_registry::task_registry(char const* storage_file_name, task_factor
 	}
 }
 
-bool restore::task_registry::create_task(std::string_view task_name, jopp::object const& params)
+void restore::task_registry::create_task(std::string_view task_name, jopp::object const& params)
 {
 	validate_task_name(task_name);
 	auto const params_json = to_string(params);
@@ -74,9 +74,7 @@ bool restore::task_registry::create_task(std::string_view task_name, jopp::objec
 	assert(ip.second);
 
 	ip.first->second.set_parameters(json::object_ref{params});
-	ip.first->second.set_state(-1);  // TODO: It should be possible to upload initial state via rest
-
-	return true;
+	ip.first->second.set_state(-1);  // TODO: It should be possible to upload initial state via rest;
 }
 
 bool restore::task_registry::delete_task(std::string_view task_name)
@@ -123,4 +121,21 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 	m_tasks.emplace(target_name, src_item->second.task());
 
 	return true;
+}
+
+Wad64::InputFile restore::task_registry::get_parameter_file(std::string_view task_name) const
+{ return m_storage_file.get_file(get_param_file_name(task_name)); }
+
+jopp::object restore::get_entries_as_json(task_registry const& registry)
+{
+	jopp::object ret;
+	auto const& tasks = registry.get_tasks();
+	for(auto const& item : tasks)
+	{
+		jopp::object obj{};
+		obj.insert("uri_name", west::http::encode_uri_component(item.first));
+		ret.insert(std::string{item.first}, std::move(obj));
+	}
+
+	return ret;
 }

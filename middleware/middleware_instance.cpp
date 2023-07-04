@@ -64,10 +64,10 @@ restore::middleware_instance restore::create_middleware_instance(jopp::object co
 	task_metadata const& taskinfo)
 {
 	return middleware_instance{
-		.resource_file = restore::resource_file{mw_config.get_field_as<jopp::string>("resource_file").c_str()},
-		.storage_file = restore::storage_file{mw_config.get_field_as<jopp::string>("storage_file").c_str()},
+		.resource_file = resource_file{mw_config.get_field_as<jopp::string>("resource_file").c_str()},
 		.session_key = get_session_key(mw_config.get_field_as<jopp::object>("session_key")),
-		.taskinfo = taskinfo
+		.taskinfo = taskinfo,
+		.tasks = task_registry{mw_config.get_field_as<jopp::string>("storage_file").c_str(), taskinfo.factory}
 	};
 }
 

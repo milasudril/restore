@@ -17,8 +17,8 @@ namespace restore
 
 		explicit task_runner(Task&& task):
 			m_should_stop{false},
-			m_task{std::move(task)},
-			m_running_status{running_state::suspended}
+			m_running_status{running_state::suspended},
+			m_task{std::move(task)}
 		{}
 
 		void suspend()
@@ -41,12 +41,6 @@ namespace restore
 		{
 			std::lock_guard lock{m_task_mtx};
 			return m_task.get_progress();
-		}
-
-		void set_parameters(json::object_ref params)
-		{
-			std::lock_guard lock{m_task_mtx};
-			m_task.set_parameters(params);
 		}
 
 		void dump_state(int output_fd) const

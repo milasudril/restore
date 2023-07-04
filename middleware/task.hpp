@@ -13,7 +13,6 @@ namespace restore
 	{
 		{x.step()} -> std::same_as<task_step_result>;
 		{x.get_progress()} -> std::same_as<double>;
-		{x.set_parameters(params)} -> std::same_as<void>;
 		{x.dump_state(fd)} -> std::same_as<void>;
 		{x.set_state(fd)} -> std::same_as<void>;
 		{x.reset()} -> std::same_as<void>;
@@ -25,7 +24,6 @@ namespace restore
 		virtual ~abstract_task() = default;
 		virtual task_step_result step() = 0;
 		virtual double get_progress() const = 0;
-		virtual void set_parameters(json::object_ref params) = 0;
 		virtual void dump_state(int output_fd) const = 0;
 		virtual void set_state(int input_fd) = 0;
 		virtual void reset() = 0;
@@ -42,9 +40,6 @@ namespace restore
 
 		double get_progress() const override
 		{ return m_task.get_progress(); }
-
-		void set_parameters(json::object_ref params) override
-		{ m_task.set_parameters(params); }
 
 		void dump_state(int output_fd) const override
 		{ m_task.dump_state(output_fd); }
@@ -87,9 +82,6 @@ namespace restore
 		double get_progress() const
 		{ return m_task->get_progress(); }
 
-		void set_parameters(json::object_ref params)
-		{ m_task->set_parameters(params); }
-
 		void dump_state(int output_fd) const
 		{ m_task->dump_state(output_fd); }
 
@@ -107,9 +99,9 @@ namespace restore
 	};
 
 	template<task Task>
-	type_erased_task create_task()
-	{ return type_erased_task{Task{}}; }
+	type_erased_task create_task(json::object_ref params)
+	{ return type_erased_task{Task{params}}; }
 
-	using task_factory = type_erased_task (*)();
+	using task_factory = type_erased_task (*)(json::object_ref);
 }
 #endif

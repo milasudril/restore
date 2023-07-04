@@ -16,10 +16,10 @@ namespace restore
 
 	struct dummy_task
 	{
+		explicit dummy_task(json::object_ref){};
+
 		double get_progress() const
 		{ return static_cast<double>(iter_count)/static_cast<double>(iter_count_max); }
-
-		void set_parameters(json::object_ref) {}
 
 		void dump_state(int) const {}
 

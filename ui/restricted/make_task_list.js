@@ -11,6 +11,16 @@ function show_error_message(element_factory, text, output_container)
 	output_container.appendChild(row);
 }
 
+function running_status_to_label(status)
+{
+	if(status === "suspended")
+	{ return "Resume"; }
+	if(status === "running")
+	{ return "Suspend"; }
+
+	return "Reset";
+}
+
 function fill_tasklist(response, element_factory, output_container, row_event_handler)
 {
 	if(!response.succeeded)
@@ -28,38 +38,38 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 		return;
 	}
 
-	for(let task in response.message)
+	for(let task_name in response.message)
 	{
 		let row = element_factory.createElement("tr");
 
 		{
 			let cell = element_factory.createElement("td");
-			let cell_text = element_factory.createTextNode(task);
+			let cell_text = element_factory.createTextNode(task_name);
 			cell.appendChild(cell_text);
 			row.appendChild(cell);
 		}
 
-		let task_uri_name = response.message[task].uri_name
+		let task = response.message[task_name];
+		let task_uri_name = response.message[task_name].uri_name;
 
 		{
 			let cell = element_factory.createElement("td");
 			let button = element_factory.createElement("input");
 			button.setAttribute("type", "button");
 			button.addEventListener("mouseup", function(){
-				row_event_handler.get_parameters(task, task_uri_name);
+				row_event_handler.get_parameters(task_name, task_uri_name);
 			});
 			button.setAttribute("value", "Get parameters");
 			cell.appendChild(button);
 			row.appendChild(cell);
 		}
 
-
 		{
 			let cell = element_factory.createElement("td");
 			let progress = element_factory.createElement("progress");
 			progress.setAttribute("restore-task-ref", task_uri_name);
-			progress.setAttribute("restore-task-name", task);
-			progress.setAttribute("value", "0.5");
+			progress.setAttribute("restore-task-name", task_name);
+			progress.setAttribute("value", task.progress.toString());
 			cell.appendChild(progress);
 			row.appendChild(cell);
 		}
@@ -69,9 +79,9 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			let button = element_factory.createElement("input");
 			button.setAttribute("type", "button");
 			button.addEventListener("mouseup", function(){
-				row_event_handler.resume(task, task_uri_name);  // TODO: Depends on task status
+				row_event_handler.resume(task_name, task_uri_name);  // TODO: Depends on task status
 			});
-			button.setAttribute("value", "Resume");  // TODO: Depends on task status
+			button.setAttribute("value", running_status_to_label(task.running_status));  // TODO: Depends on task status
 			cell.appendChild(button);
 			row.appendChild(cell);
 		}
@@ -81,7 +91,7 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			let button = element_factory.createElement("input");
 			button.setAttribute("type", "button");
 			button.addEventListener("mouseup", function(){
-				row_event_handler.take_snapshot(task, task_uri_name);
+				row_event_handler.take_snapshot(task_name, task_uri_name);
 			});
 			button.setAttribute("value", "Take snapshot");
 			cell.appendChild(button);

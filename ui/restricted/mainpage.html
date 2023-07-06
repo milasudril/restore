@@ -39,7 +39,7 @@ let task_actions = {
 	resume: async function(task_name, task_uri_name) {
 		let response = await send_request("/tasks/" + task_uri_name + "/running_status",
 			"PUT",
-			{mode: "running"});
+			{value: "running"});
 		if(!response.succeeded)
 		{
 			alert("The server returned HTTP status " +
@@ -51,7 +51,7 @@ let task_actions = {
 	suspend: async function(task_name, task_uri_name) {
 		let response = await send_request("/tasks/" + task_uri_name + "/running_status",
 			"PUT",
-			{mode: "suspended"});
+			{value: "suspended"});
 		if(!response.succeeded)
 		{
 			alert("The server returned HTTP status " +

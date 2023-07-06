@@ -78,10 +78,28 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			let cell = element_factory.createElement("td");
 			let button = element_factory.createElement("input");
 			button.setAttribute("type", "button");
-			button.addEventListener("mouseup", function(){
-				row_event_handler.resume(task_name, task_uri_name);  // TODO: Depends on task status
+			button.addEventListener("mouseup", async function(event){
+				let button = event.target;
+				let state = button.getAttribute("restore-task-rs");
+				if(state === "suspended")
+				{ row_event_handler.resume(task_name, task_uri_name); }
+
+				if(state === "running")
+				{ row_event_handler.suspend(task_name, task_uri_name); }
+
+				if(state === "completed")
+				{ row_event_handler.reset(task_name, task_uri_name); }
+
+				let response = await send_request("/tasks/" + task_uri_name + "/running_status", "GET");
+				let running_status = response.message.value;
+				if(response.succeeded)
+				{
+					button.setAttribute("value", running_status_to_label(running_status));
+					button.setAttribute("restore-task-rs", running_status);
+				}
 			});
-			button.setAttribute("value", running_status_to_label(task.running_status));  // TODO: Depends on task status
+			button.setAttribute("value", running_status_to_label(task.running_status));
+			button.setAttribute("restore-task-rs", task.running_status);
 			cell.appendChild(button);
 			row.appendChild(cell);
 		}

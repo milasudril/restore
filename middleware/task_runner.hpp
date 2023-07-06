@@ -9,11 +9,28 @@
 
 namespace restore
 {
+	enum class task_running_state{suspended, running, completed};
+
+	inline constexpr char const* to_string(task_running_state val)
+	{
+		switch(val)
+		{
+			case task_running_state::suspended:
+				return "suspended";
+			case task_running_state::running:
+				return "running";
+			case task_running_state::completed:
+				return "completed";
+			default:
+				__builtin_unreachable();
+		}
+	}
+
 	template<task Task>
 	class task_runner
 	{
 	public:
-		enum class running_state{suspended, running, completed};
+		using running_state = task_running_state;
 
 		explicit task_runner(Task const& task):
 			m_should_stop{false},

@@ -165,6 +165,42 @@ namespace
 			}
 		}
 
+		if(endpoint == "/running_status")
+		{
+			if(header.request_line.method == "GET")
+			{
+				auto const& tasklist = tasks.get_tasks();
+				auto const i = tasklist.find(task_name);
+				if(i == std::end(tasklist))
+				{
+					return std::pair{
+						west::http::finalize_state_result{
+							.http_status = west::http::status::not_found,
+							.error_message = west::make_unique_cstr(header.request_line.request_target.value())
+						},
+						restore::server_type{}
+					};
+				}
+
+				jopp::object ret{};
+				ret.insert("value", to_string(i->second.running_status()));
+				return std::pair{
+					west::http::finalize_state_result{},
+					restore::server_type{restore::json_response_server{std::move(ret)}}
+				};
+			}
+			else
+			{
+				return std::pair{
+				west::http::finalize_state_result{
+					.http_status = west::http::status::method_not_allowed,
+					.error_message = west::make_unique_cstr(header.request_line.request_target.value())
+				},
+				restore::server_type{}
+			};
+			}
+		}
+
 		return std::pair{
 			west::http::finalize_state_result{
 				.http_status = west::http::status::not_found,

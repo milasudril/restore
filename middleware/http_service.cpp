@@ -160,7 +160,7 @@ namespace
 			{
 				return std::pair{west::http::finalize_state_result{
 					.http_status = west::http::status::method_not_allowed,
-					.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
+					.error_message = west::make_unique_cstr(header.request_line.request_target.value())
 				}, restore::server_type{}};
 			}
 		}
@@ -189,16 +189,18 @@ namespace
 					restore::server_type{restore::json_response_server{std::move(ret)}}
 				};
 			}
-			else
+
+			if(header.request_line.method == "PUT")
 			{
-				return std::pair{
+			}
+
+			return std::pair{
 				west::http::finalize_state_result{
 					.http_status = west::http::status::method_not_allowed,
 					.error_message = west::make_unique_cstr(header.request_line.request_target.value())
 				},
 				restore::server_type{}
 			};
-			}
 		}
 
 		return std::pair{

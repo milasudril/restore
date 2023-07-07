@@ -157,6 +157,7 @@ namespace restore
 		{
 			while(!m_should_stop.load())
 			{
+				std::this_thread::sleep_for(std::chrono::milliseconds{1});
 				std::lock_guard lock{m_task_mtx};
 				if(m_task.step() == task_step_result::task_is_completed)
 				{

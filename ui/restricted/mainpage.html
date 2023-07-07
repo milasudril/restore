@@ -37,28 +37,14 @@ let task_actions = {
 		save_object_as_json(response.message, task_uri_name + "_parameters.json");
 	},
 	resume: async function(task_name, task_uri_name) {
-		let response = await send_request("/tasks/" + task_uri_name + "/running_status",
+		return await send_request("/tasks/" + task_uri_name + "/running_status",
 			"PUT",
 			{new_value: "running"});
-		if(!response.succeeded)
-		{
-			alert("The server returned HTTP status " +
-				response.message.http_status.toString() +
-				" with message " + response.message.error_message);
-			return;
-		}
 	},
 	suspend: async function(task_name, task_uri_name) {
-		let response = await send_request("/tasks/" + task_uri_name + "/running_status",
+		return await send_request("/tasks/" + task_uri_name + "/running_status",
 			"PUT",
 			{new_value: "suspended"});
-		if(!response.succeeded)
-		{
-			alert("The server returned HTTP status " +
-				response.message.http_status.toString() +
-				" with message " + response.message.error_message);
-			return;
-		}
 	},
 	take_snapshot : async function(task_name, task_uri_name) {
 		let response = await send_request("/tasks/" + task_uri_name + "/system_state", "GET");

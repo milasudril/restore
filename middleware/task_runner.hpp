@@ -157,7 +157,6 @@ namespace restore
 		{
 			while(!m_should_stop.load())
 			{
-				printf("%zu Task is running\n", k);
 				std::lock_guard lock{m_task_mtx};
 				if(m_task.step() == task_step_result::task_is_completed)
 				{

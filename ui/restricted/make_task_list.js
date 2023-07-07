@@ -92,8 +92,6 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 				if(state === "completed")
 				{ response = await row_event_handler.reset(task_name, task_uri_name); }
 
-				console.log(response);
-
 				if(!response.succeeded)
 				{
 					alert("The server returned HTTP status " +
@@ -102,7 +100,7 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 					return;
 				}
 
-				let running_status = response.message.value;
+				let running_status = response.message.result;
 				button.setAttribute("value", running_status_to_label(running_status));
 				button.setAttribute("restore-task-rs", running_status);
 			});

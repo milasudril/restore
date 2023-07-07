@@ -60,16 +60,24 @@ namespace restore
 		{
 			if(m_runner.joinable())
 			{
-				m_running_status = running_state::suspended;
 				m_should_stop = true;
 				m_runner.join();
 			}
+
+			auto const current_status = m_running_status.load();
+			m_running_status = current_status == running_state::running?
+				running_state::suspended : current_status;
 		}
 
 		void resume()
 		{
-			suspend();
-			m_runner = std::thread{[this](){ do_run(); }};
+			if(m_running_status != running_state::completed)
+			{
+				suspend();
+				m_should_stop = false;
+				m_runner = std::thread{[this](){ do_run(); }};
+				m_running_status = running_state::running;
+			}
 		}
 
 		double get_progress() const
@@ -147,9 +155,9 @@ namespace restore
 
 		void do_run()
 		{
-			m_running_status = running_state::running;
 			while(!m_should_stop.load())
 			{
+				printf("%zu Task is running\n", k);
 				std::lock_guard lock{m_task_mtx};
 				if(m_task.step() == task_step_result::task_is_completed)
 				{

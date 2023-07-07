@@ -141,3 +141,15 @@ jopp::object restore::get_entries_as_json(task_registry const& registry)
 
 	return ret;
 }
+
+std::optional<restore::task_running_status> restore::task_registry::set_running_status(
+	std::string_view task_name,
+	task_running_status new_status)
+{
+	auto const i = m_tasks.find(task_name);
+	if(i == std::end(m_tasks))
+	{ return std::nullopt; }
+	i->second.set_running_status(new_status);
+
+	return i->second.running_status();
+}

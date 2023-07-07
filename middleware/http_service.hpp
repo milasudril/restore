@@ -13,6 +13,7 @@
 #include "./redirect_server.hpp"
 #include "./create_task_server.hpp"
 #include "./clone_task_server.hpp"
+#include "./set_task_running_status_server.hpp"
 
 template<>
 struct jopp::object_converter<west::http::status>
@@ -46,7 +47,8 @@ namespace restore
 		login_server,
 		redirect_server,
 		create_task_server,
-		clone_task_server>;
+		clone_task_server,
+		set_task_running_status_server>;
 
 	class http_service
 	{

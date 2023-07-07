@@ -9,28 +9,40 @@
 
 namespace restore
 {
-	enum class task_running_state{suspended, running, completed};
+	enum class task_running_status{suspended, running, completed};
 
-	inline constexpr char const* to_string(task_running_state val)
+	inline constexpr char const* to_string(task_running_status val)
 	{
 		switch(val)
 		{
-			case task_running_state::suspended:
+			case task_running_status::suspended:
 				return "suspended";
-			case task_running_state::running:
+			case task_running_status::running:
 				return "running";
-			case task_running_state::completed:
+			case task_running_status::completed:
 				return "completed";
 			default:
 				__builtin_unreachable();
 		}
 	}
 
+	inline constexpr task_running_status to_task_running_status(std::string_view value)
+	{
+		if(value == "suspended")
+		{ return task_running_status::suspended; }
+		if(value == "running")
+		{ return task_running_status::running; }
+		if(value == "completed")
+		{ return task_running_status::completed; }
+
+		throw std::runtime_error{std::string{"Invalid task running state" } + std::string{value}};
+	}
+
 	template<task Task>
 	class task_runner
 	{
 	public:
-		using running_state = task_running_state;
+		using running_state = task_running_status;
 
 		explicit task_runner(Task const& task):
 			m_should_stop{false},
@@ -100,6 +112,23 @@ namespace restore
 		running_state running_status() const
 		{ return m_running_status; }
 
+		void set_running_status(running_state new_value)
+		{
+			switch(new_value)
+			{
+				case running_state::suspended:
+					suspend();
+					return;
+
+				case running_state::running:
+					resume();
+					return;
+
+				case running_state::completed:
+					throw std::runtime_error{"It is not possible to set running status to completed"};
+			}
+		}
+
 		~task_runner()
 		{ suspend(); }
 
@@ -122,7 +151,7 @@ namespace restore
 			while(!m_should_stop.load())
 			{
 				std::lock_guard lock{m_task_mtx};
-				if(m_task->step() == task_step_result::task_is_completed)
+				if(m_task.step() == task_step_result::task_is_completed)
 				{
 					m_running_status = running_state::completed;
 					return;

@@ -24,6 +24,8 @@ namespace restore
 
 		Wad64::InputFile get_parameter_file(std::string_view task_name) const;
 
+		std::optional<task_running_status> set_running_status(std::string_view task_name, task_running_status new_status);
+
 	private:
 		task_factory m_create_task;
 		std::map<std::string, task_runner<type_erased_task>, std::less<>> m_tasks;

@@ -192,6 +192,10 @@ namespace
 
 			if(header.request_line.method == "PUT")
 			{
+				return std::pair{
+					west::http::finalize_state_result{},
+					restore::server_type{restore::set_task_running_status_server{tasks, std::move(task_name)}}
+				};
 			}
 
 			return std::pair{

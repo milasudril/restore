@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <chrono>
 #include <string>
+#include <mutex>
 
 namespace restore
 {
@@ -20,6 +21,13 @@ namespace restore
 	}
 
 	std::string to_string(std::chrono::system_clock::time_point t);
+
+	template<class Callable, class ... Args>
+	decltype(auto) call(std::mutex& m, Callable&& f, Args&& ... args)
+	{
+		std::lock_guard lock{m};
+		return std::invoke(std::forward<Callable>(f), std::forward<Args>(args)...);
+	}
 }
 
 #endif

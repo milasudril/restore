@@ -96,10 +96,31 @@ let task_actions = {
 	}
 };
 
+async function watch_tasks(tasklist)
+{
+	for(item in tasklist)
+	{
+		let task = tasklist[item];
+		let response = await send_request("/tasks/" + task.uri_name + "/progress", "GET");
+		if(response.succeeded)
+		{
+
+			task.progress_bar.setAttribute("value", response.message.value.toString());
+			task.status_button.setAttribute("value", running_status_to_label(response.message.running_status));
+			task.status_button.setAttribute("restore-task-rs", response.message.running_status);
+		}
+	}
+}
+
+let loaded_tasks = [];
+
 window.onload = async function() {
 	await redirect_if_not_logged_in(location, document);
 	let get_task_list_result = await pending_task_list;
-	fill_tasklist(get_task_list_result, document, document.getElementById("tasklist"), task_actions);
+	loaded_tasks = fill_tasklist(get_task_list_result, document, document.getElementById("tasklist"), task_actions);
+
+	if(get_task_list_result.succeeded)
+	{ setInterval(watch_tasks, 5000, loaded_tasks); }
 }
 
 async function refresh_tasklist()
@@ -108,7 +129,7 @@ async function refresh_tasklist()
 	let get_task_list_result = await send_request("/tasks");
 	let tasklist = document.getElementById("tasklist");
 	tasklist.replaceChildren();
-	fill_tasklist(get_task_list_result, document, tasklist, task_actions);
+	loaded_tasks = fill_tasklist(get_task_list_result, document, tasklist, task_actions);
 }
 
 	</script>

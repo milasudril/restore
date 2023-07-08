@@ -134,8 +134,9 @@ jopp::object restore::get_entries_as_json(task_registry const& registry)
 	{
 		jopp::object obj{};
 		obj.insert("uri_name", west::http::encode_uri_component(item.first));
-		obj.insert("running_status", to_string(item.second.running_status()));
-		obj.insert("progress", item.second.get_progress());
+		auto const progress = item.second.progress();
+		obj.insert("running_status", to_string(progress.running_status));
+		obj.insert("progress", progress.value);
 		ret.insert(std::string{item.first}, std::move(obj));
 	}
 

@@ -38,6 +38,12 @@ namespace restore
 		throw std::runtime_error{std::string{"Invalid task running state" } + std::string{value}};
 	}
 
+	struct task_progress
+	{
+		double value;
+		task_running_status running_status;
+	};
+
 	template<task Task>
 	class task_runner
 	{
@@ -78,10 +84,13 @@ namespace restore
 			}
 		}
 
-		double get_progress() const
+		task_progress progress() const
 		{
-			return m_worker.process([&task = m_task](){
-				return task.get_progress();
+			return m_worker.process([&task = m_task, &running_status = m_running_status](){
+				return task_progress{
+					.value = task.get_progress(),
+					.running_status = running_status
+				};
 			}, m_running_status != running_state::running);
 		}
 
@@ -172,7 +181,6 @@ namespace restore
 					return;
 				}
 			}
-
 			m_running_status = running_state::suspended;
 		}
 	};

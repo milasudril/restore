@@ -23,19 +23,21 @@ function running_status_to_label(status)
 
 function fill_tasklist(response, element_factory, output_container, row_event_handler)
 {
+	let ret = [];
+
 	if(!response.succeeded)
 	{
 		show_error_message(element_factory,
 			"The server returned HTTP status " +
 			response.message.http_status.toString() + " with message " + response.message.error_message,
 			output_container);
-		return;
+		return ret;
 	}
 
 	if(Object.keys(response.message).length == 0)
 	{
 		show_error_message(element_factory, "Task list is empty", output_container);
-		return;
+		return ret;
 	}
 
 	for(let task_name in response.message)
@@ -64,6 +66,7 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			row.appendChild(cell);
 		}
 
+		let progress_bar = {};
 		{
 			let cell = element_factory.createElement("td");
 			let progress = element_factory.createElement("progress");
@@ -72,8 +75,10 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			progress.setAttribute("value", task.progress.toString());
 			cell.appendChild(progress);
 			row.appendChild(cell);
+			progress_bar = progress;
 		}
 
+		let status_button = {};
 		{
 			let cell = element_factory.createElement("td");
 			let button = element_factory.createElement("input");
@@ -108,6 +113,7 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 			button.setAttribute("restore-task-rs", task.running_status);
 			cell.appendChild(button);
 			row.appendChild(cell);
+			status_button = button;
 		}
 
 		{
@@ -159,5 +165,7 @@ function fill_tasklist(response, element_factory, output_container, row_event_ha
 		}
 
 		output_container.appendChild(row);
+		ret.push({uri_name: task_uri_name, progress_bar: progress_bar, status_button: status_button});
 	}
+	return ret;
 }

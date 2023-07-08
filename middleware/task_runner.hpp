@@ -63,10 +63,6 @@ namespace restore
 				m_should_stop = true;
 				m_runner.join();
 			}
-
-			auto const current_status = m_running_status.load();
-			m_running_status = current_status == running_state::running?
-				running_state::suspended : current_status;
 		}
 
 		void resume()
@@ -76,20 +72,24 @@ namespace restore
 				suspend();
 				m_should_stop = false;
 				m_runner = std::thread{[this](){ do_run(); }};
-				m_running_status = running_state::running;
+
+				// This will block until the worker thread have started
+				m_worker.process([](){return 0;}, false);
 			}
 		}
 
 		double get_progress() const
 		{
-			std::lock_guard lock{m_task_mtx};
-			return m_task.get_progress();
+			return m_worker.process([&task = m_task](){
+				return task.get_progress();
+			}, m_running_status != running_state::running);
 		}
 
 		void dump_state(int output_fd) const
 		{
-			std::lock_guard lock{m_task_mtx};
-			m_task.dump_state(output_fd);
+			return m_worker.process([&task = m_task, output_fd](){
+				return task.dump_state(output_fd);
+			}, m_running_status != running_state::running);
 		}
 
 		void suspend_and_dump_state(int output_fd)
@@ -98,23 +98,28 @@ namespace restore
 			dump_state(output_fd);
 		}
 
-		void set_state(int output_fd)
+		void set_state(int input_fd)
 		{
-			std::lock_guard lock{m_task_mtx};
-			m_task.set_state(output_fd);
+			m_worker.process([&task = m_task, input_fd](){
+				task.set_state(input_fd);
+				return 0;
+			}, m_running_status != running_state::running);
 		}
 
 		void set_parameters(json::object_ref obj)
 		{
-			std::lock_guard lock{m_task_mtx};
-			m_task.set_parameters(obj);
+			m_worker.process([&task = m_task, obj](){
+				task.set_parameters(obj);
+				return 0;
+			}, m_running_status != running_state::running);
 		}
 
 		void reset()
 		{
-			std::lock_guard lock{m_task_mtx};
-			m_task.reset();
-			m_running_status = m_runner.joinable()? running_state::running : running_state::suspended;
+			m_worker.process([&task = m_task](){
+				task.reset();
+				return 0;
+			}, m_running_status != running_state::running);
 		}
 
 		running_state running_status() const
@@ -142,27 +147,33 @@ namespace restore
 
 		Task task() const
 		{
-			std::lock_guard lock{m_task_mtx};
-			return m_task;
+			return m_worker.process([&task = m_task](){
+				return task;
+			}, m_running_status != running_state::running);
 		}
 
 	private:
 		std::atomic<bool> m_should_stop;
 		std::atomic<running_state> m_running_status;
+		mutable sync_message_bus m_worker;
 		Task m_task;
-		mutable std::mutex m_task_mtx;
 		std::thread m_runner;
 
 		void do_run()
 		{
+			m_running_status = running_state::running;
 			while(!m_should_stop.load())
 			{
-				if(call(m_task_mtx, &Task::step, m_task) == task_step_result::task_is_completed)
+				m_worker();
+
+				if(m_task.step() == task_step_result::task_is_completed)
 				{
 					m_running_status = running_state::completed;
 					return;
 				}
 			}
+
+			m_running_status = running_state::suspended;
 		}
 	};
 }

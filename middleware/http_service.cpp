@@ -68,6 +68,169 @@ namespace
 		enum session_status session_status)
 	{ return serve_resource(header, content, session_status); }
 
+	auto serve_task_root_ep(west::http::request_header const& header,
+		restore::task_registry& tasks,
+		std::string&& task_name)
+	{
+		if(header.request_line.method == "DELETE")
+		{
+			if(!tasks.delete_task(task_name))
+			{
+				return std::pair{
+					west::http::finalize_state_result{
+						.http_status = west::http::status::not_found,
+						.error_message = west::make_unique_cstr(header.request_line.request_target.value())
+					},
+					restore::server_type{}
+				};
+			}
+
+			jopp::object ret{};
+			ret.insert("result", "successful");
+			return std::pair{
+				west::http::finalize_state_result{},
+				restore::server_type{restore::json_response_server{ret}}
+			};
+		}
+
+		if(header.request_line.method == "POST")
+		{
+			return std::pair{
+				west::http::finalize_state_result{},
+				restore::server_type{restore::clone_task_server{tasks, std::move(task_name)}}
+			};
+		}
+
+		return std::pair{west::http::finalize_state_result{
+			.http_status = west::http::status::method_not_allowed,
+			.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
+		}, restore::server_type{}};
+	}
+
+	auto serve_task_parameters(west::http::request_header const& header,
+		restore::task_registry& tasks,
+		std::string&& task_name)
+	{
+		if(header.request_line.method == "GET")
+		{
+			try
+			{
+				return std::pair{
+					west::http::finalize_state_result{},
+					restore::server_type{
+						restore::resource_server{
+							tasks.get_parameter_file(task_name),
+							restore::resource_info{
+								.name = std::string{},
+								.mime_type = "application/json",
+								.last_modified = std::nullopt
+							}
+						}
+					}
+				};
+			}
+			catch(std::exception const& err)
+			{
+				return std::pair{
+					west::http::finalize_state_result{
+						.http_status = west::http::status::internal_server_error,
+						.error_message = west::make_unique_cstr(err.what())
+					},
+					restore::server_type{}
+				};
+			}
+		}
+		else
+		{
+			return std::pair{west::http::finalize_state_result{
+				.http_status = west::http::status::method_not_allowed,
+				.error_message = west::make_unique_cstr(header.request_line.request_target.value())
+			}, restore::server_type{}};
+		}
+	}
+
+	auto serve_task_running_status(west::http::request_header const& header,
+		restore::task_registry& tasks,
+		std::string&& task_name)
+	{
+		if(header.request_line.method == "GET")
+		{
+			auto const& tasklist = tasks.get_tasks();
+			auto const i = tasklist.find(task_name);
+			if(i == std::end(tasklist))
+			{
+				return std::pair{
+					west::http::finalize_state_result{
+						.http_status = west::http::status::not_found,
+						.error_message = west::make_unique_cstr(header.request_line.request_target.value())
+					},
+					restore::server_type{}
+				};
+			}
+
+			jopp::object ret{};
+			ret.insert("value", to_string(i->second.running_status()));
+			return std::pair{
+				west::http::finalize_state_result{},
+				restore::server_type{restore::json_response_server{std::move(ret)}}
+			};
+		}
+
+		if(header.request_line.method == "PUT")
+		{
+			return std::pair{
+				west::http::finalize_state_result{},
+				restore::server_type{restore::set_task_running_status_server{tasks, std::move(task_name)}}
+			};
+		}
+
+		return std::pair{
+			west::http::finalize_state_result{
+				.http_status = west::http::status::method_not_allowed,
+				.error_message = west::make_unique_cstr(header.request_line.request_target.value())
+			},
+			restore::server_type{}
+		};
+	}
+
+	auto serve_task_progress(west::http::request_header const& header,
+		restore::task_registry& tasks,
+		std::string&& task_name)
+	{
+		if(header.request_line.method == "GET")
+		{
+			auto const& tasklist = tasks.get_tasks();
+			auto const i = tasklist.find(task_name);
+			if(i == std::end(tasklist))
+			{
+				return std::pair{
+					west::http::finalize_state_result{
+						.http_status = west::http::status::not_found,
+						.error_message = west::make_unique_cstr(header.request_line.request_target.value())
+					},
+					restore::server_type{}
+				};
+			}
+
+			jopp::object ret{};
+			auto const progress = i->second.progress();
+			ret.insert("value", progress.value);
+			ret.insert("running_status", to_string(progress.running_status));
+			return std::pair{
+				west::http::finalize_state_result{},
+				restore::server_type{restore::json_response_server{std::move(ret)}}
+			};
+		}
+
+		return std::pair{
+			west::http::finalize_state_result{
+				.http_status = west::http::status::method_not_allowed,
+				.error_message = west::make_unique_cstr(header.request_line.request_target.value())
+			},
+			restore::server_type{}
+		};
+	}
+
 	auto serve_task(west::http::request_header const& header,
 		restore::task_registry& tasks,
 		enum session_status session_status)
@@ -89,159 +252,16 @@ namespace
 		auto const endpoint = std::string_view{task_name_end, std::end(uri)};
 
 		if(endpoint.empty())
-		{
-			if(header.request_line.method == "DELETE")
-			{
-				if(!tasks.delete_task(task_name))
-				{
-					return std::pair{
-						west::http::finalize_state_result{
-							.http_status = west::http::status::not_found,
-							.error_message = west::make_unique_cstr(header.request_line.request_target.value())
-						},
-						restore::server_type{}
-					};
-				}
-
-				jopp::object ret{};
-				ret.insert("result", "successful");
-				return std::pair{
-					west::http::finalize_state_result{},
-					restore::server_type{restore::json_response_server{ret}}
-				};
-			}
-
-			if(header.request_line.method == "POST")
-			{
-				return std::pair{
-					west::http::finalize_state_result{},
-					restore::server_type{restore::clone_task_server{tasks, std::move(task_name)}}
-				};
-			}
-
-			return std::pair{west::http::finalize_state_result{
-				.http_status = west::http::status::method_not_allowed,
-				.error_message = west::make_unique_cstr(header.request_line.request_target.value()),
-			}, restore::server_type{}};
-		}
+		{ return serve_task_root_ep(header, tasks, std::move(task_name)); }
 
 		if(endpoint == "/parameters")
-		{
-			if(header.request_line.method == "GET")
-			{
-				try
-				{
-					return std::pair{
-						west::http::finalize_state_result{},
-						restore::server_type{
-							restore::resource_server{
-								tasks.get_parameter_file(task_name),
-								restore::resource_info{
-									.name = std::string{},
-									.mime_type = "application/json",
-									.last_modified = std::nullopt
-								}
-							}
-						}
-					};
-				}
-				catch(std::exception const& err)
-				{
-					return std::pair{
-						west::http::finalize_state_result{
-							.http_status = west::http::status::internal_server_error,
-							.error_message = west::make_unique_cstr(err.what())
-						},
-						restore::server_type{}
-					};
-				}
-			}
-			else
-			{
-				return std::pair{west::http::finalize_state_result{
-					.http_status = west::http::status::method_not_allowed,
-					.error_message = west::make_unique_cstr(header.request_line.request_target.value())
-				}, restore::server_type{}};
-			}
-		}
+		{ return serve_task_parameters(header, tasks, std::move(task_name)); }
 
 		if(endpoint == "/running_status")
-		{
-			if(header.request_line.method == "GET")
-			{
-				auto const& tasklist = tasks.get_tasks();
-				auto const i = tasklist.find(task_name);
-				if(i == std::end(tasklist))
-				{
-					return std::pair{
-						west::http::finalize_state_result{
-							.http_status = west::http::status::not_found,
-							.error_message = west::make_unique_cstr(header.request_line.request_target.value())
-						},
-						restore::server_type{}
-					};
-				}
-
-				jopp::object ret{};
-				ret.insert("value", to_string(i->second.running_status()));
-				return std::pair{
-					west::http::finalize_state_result{},
-					restore::server_type{restore::json_response_server{std::move(ret)}}
-				};
-			}
-
-			if(header.request_line.method == "PUT")
-			{
-				return std::pair{
-					west::http::finalize_state_result{},
-					restore::server_type{restore::set_task_running_status_server{tasks, std::move(task_name)}}
-				};
-			}
-
-			return std::pair{
-				west::http::finalize_state_result{
-					.http_status = west::http::status::method_not_allowed,
-					.error_message = west::make_unique_cstr(header.request_line.request_target.value())
-				},
-				restore::server_type{}
-			};
-		}
+		{ return serve_task_running_status(header, tasks, std::move(task_name)) ;}
 
 		if(endpoint == "/progress")
-		{
-			if(header.request_line.method == "GET")
-			{
-				auto const& tasklist = tasks.get_tasks();
-				auto const i = tasklist.find(task_name);
-				if(i == std::end(tasklist))
-				{
-					return std::pair{
-						west::http::finalize_state_result{
-							.http_status = west::http::status::not_found,
-							.error_message = west::make_unique_cstr(header.request_line.request_target.value())
-						},
-						restore::server_type{}
-					};
-				}
-
-				jopp::object ret{};
-				auto const progress = i->second.progress();
-				ret.insert("value", progress.value);
-				ret.insert("running_status", to_string(progress.running_status));
-				return std::pair{
-					west::http::finalize_state_result{},
-					restore::server_type{restore::json_response_server{std::move(ret)}}
-				};
-			}
-
-			return std::pair{
-				west::http::finalize_state_result{
-					.http_status = west::http::status::method_not_allowed,
-					.error_message = west::make_unique_cstr(header.request_line.request_target.value())
-				},
-				restore::server_type{}
-			};
-		}
+		{ return serve_task_progress(header, tasks, std::move(task_name)); }
 
 		return std::pair{
 			west::http::finalize_state_result{

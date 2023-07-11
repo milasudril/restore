@@ -32,7 +32,7 @@ async function submit_form(event, doc, subform)
 {
 	event.preventDefault();
 
-	let output_object = {}
+	let output_object = {};
 	output_object.name = doc.getElementById("task_name").value;
 	output_object.parameters = {};
 	serialize_form(subform, output_object.parameters);
@@ -63,6 +63,12 @@ async function submit_form(event, doc, subform)
 				<th class="row-header">name</th>
 				<td field-name="name" field-type-name="string" field-type-category="atom">
 					<input id="task_name">
+				</td>
+			</tr>
+			<tr>
+				<th class="row-header">initial_state</th>
+				<td field-name="name" field-type-name="string" field-type-category="atom">
+					<input id="initial_state" type="file">
 				</td>
 			</tr>
 		</table>

@@ -8,16 +8,34 @@ function find_if(array, predicate)
 	return ret === - 1? array.length : ret;
 }
 
-function send_request(url, method = "GET", body)
+function append_data_to_string(str, data)
+{
+	let encoded_string = new TextEncoder().encode(str);
+	if(data.length === 0)
+	{ return encoded_string; }
+
+	let ret = new Uint8Array(encoded_string.length + data.length + 1);
+	ret.set(encoded_string, 0);
+	ret.set(data, encoded_string.length + 1)
+
+	return ret;
+}
+
+function uint8_array_to_array_buffer(array)
+{
+	return array.buffer.slice(array.byteOffset, array.byteLength + array.byteOffset);
+}
+
+function send_request(url, method = "GET", body, attachment=new ArrayBuffer())
 {
 	return fetch(url, {
 		method: method,
 		redirect: "error",
 		headers: {
-			"Accept": "application/json",
-			"Content-Type": "application/json"
+			"Accept": "application/json"
 		},
-		body: body? JSON.stringify(body) : null
+		body: body? uint8_array_to_array_buffer(append_data_to_string(JSON.stringify(body),
+			new Uint8Array(attachment))) : null
 	}).then(function(res) {
 		return {succeeded: res.ok, pending_message: res.json()};
 	}).then(async function(data){
@@ -45,4 +63,16 @@ function get_cookies(cookie_string)
 function clear_cookie(doc, name, hostname)
 {
 	doc.cookie = name + "=; Max-Age=0; SameSite=Strict; path=/; domain=" + hostname;
+}
+
+function file_to_array_buffer(file)
+{
+	return new Promise(function(resolve, reject) {
+		let reader = new FileReader();
+		reader.onload = function(){
+			resolve(reader.result);
+		};
+		reader.onerror = reject;
+		reader.readAsArrayBuffer(file);
+	});
 }

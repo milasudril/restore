@@ -34,8 +34,7 @@ function send_request(url, method = "GET", body, attachment=new ArrayBuffer())
 		headers: {
 			"Accept": "application/json"
 		},
-		body: body? uint8_array_to_array_buffer(append_data_to_string(JSON.stringify(body),
-			new Uint8Array(attachment))) : null
+		body: body? append_data_to_string(JSON.stringify(body), new Uint8Array(attachment)) : null
 	}).then(function(res) {
 		return {succeeded: res.ok, pending_message: res.json()};
 	}).then(async function(data){

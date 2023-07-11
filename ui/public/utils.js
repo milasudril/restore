@@ -27,15 +27,18 @@ function append_data_to_string(str, data)
 	return ret;
 }
 
-function send_request(url, method = "GET", body, attachment=new ArrayBuffer())
+function split_text_and_data(array)
+{
+	let i = find(array, 0);
+	return {body: new TextDecoder().decode(array.slice(0, i)), attachment_data: array.slice(i, array.length)};
+}
+
+function send_request(url, method = "GET", body, attachment_data = new ArrayBuffer())
 {
 	return fetch(url, {
 		method: method,
 		redirect: "error",
-		headers: {
-			"Accept": "application/json"
-		},
-		body: body? append_data_to_string(JSON.stringify(body), new Uint8Array(attachment)) : null
+		body: body? append_data_to_string(JSON.stringify(body), new Uint8Array(attachment_data)) : null
 	}).then(function(res) {
 		return {succeeded: res.ok, pending_message: res.json()};
 	}).then(async function(data){

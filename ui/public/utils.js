@@ -5,7 +5,13 @@ let strcmp = new Intl.Collator(undefined, {numeric:true, sensitivity: "base"}).c
 function find_if(array, predicate)
 {
 	let ret = array.findIndex(predicate);
-	return ret === - 1? array.length : ret;
+	return ret === -1? array.length : ret;
+}
+
+function find(array, value)
+{
+	let ret = array.indexOf(value);
+	return ret === -1? array.length : ret;
 }
 
 function append_data_to_string(str, data)

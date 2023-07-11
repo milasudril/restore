@@ -40,10 +40,11 @@ function send_request(url, method = "GET", body, attachment_data = new ArrayBuff
 		redirect: "error",
 		body: body? append_data_to_string(JSON.stringify(body), new Uint8Array(attachment_data)) : null
 	}).then(function(res) {
-		return {succeeded: res.ok, pending_message: res.json()};
+		return {succeeded: res.ok, pending_message: res.arrayBuffer()};
 	}).then(async function(data){
-		let message = await data.pending_message;
-		return {succeeded: data.succeeded, message: message};
+		let message = split_text_and_data(new Uint8Array(await data.pending_message));
+		console.log(message.attachment_data);
+		return {succeeded: data.succeeded, message: JSON.parse(message.body)};
 	});
 }
 

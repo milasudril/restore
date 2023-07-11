@@ -27,11 +27,6 @@ function append_data_to_string(str, data)
 	return ret;
 }
 
-function uint8_array_to_array_buffer(array)
-{
-	return array.buffer.slice(array.byteOffset, array.byteLength + array.byteOffset);
-}
-
 function send_request(url, method = "GET", body, attachment=new ArrayBuffer())
 {
 	return fetch(url, {

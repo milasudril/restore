@@ -22,7 +22,7 @@ namespace restore
 		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
 		{ return std::strong_ordering::equal; }
 
-		auto finalize_state(west::http::field_map& fields)
+		auto finalize_state(west::http::field_map& header_fields)
 		{
 			try
 			{
@@ -30,7 +30,8 @@ namespace restore
 				if(obj == nullptr)
 				{ throw std::runtime_error{"Expected login request to be an object"}; }
 
-				auto const& session_key = obj->get_field_as<jopp::string>("session_key");
+				auto const& fields = obj->get_field_as<jopp::object>("fields");
+				auto const& session_key = fields.get_field_as<jopp::string>("session_key");
 				if(session_key != m_session_key)
 				{
 					jopp::object resp_obj{};
@@ -41,7 +42,7 @@ namespace restore
 					m_resp_ptr = std::data(m_response);
 					m_bytes_to_read = std::size(m_response);
 
-					fields.append("Content-Length", std::to_string(m_bytes_to_read));
+					header_fields.append("Content-Length", std::to_string(m_bytes_to_read));
 
 					return west::http::finalize_state_result{};
 				}
@@ -57,7 +58,7 @@ namespace restore
 				cookie_value.append(m_session_key)
 					.append(";SameSite=Strict;HttpOnly;Path=/");
 
-				fields.append("Content-Length", std::to_string(m_bytes_to_read))
+				header_fields.append("Content-Length", std::to_string(m_bytes_to_read))
 					.append("Set-Cookie", std::move(cookie_value));
 
 				return west::http::finalize_state_result{};

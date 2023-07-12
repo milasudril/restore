@@ -22,7 +22,7 @@ function append_data_to_string(str, blobs)
 
 	let buffer_size = encoded_string.length + 1;
 	for(let key in blobs)
-	{ buffer_size += blobs[key].content.byteLength; }
+	{ buffer_size += blobs[key].byteLength; }
 
 	let ret = new Uint8Array(buffer_size);
 	ret.set(encoded_string, 0);
@@ -31,8 +31,8 @@ function append_data_to_string(str, blobs)
 	for(let key in blobs)
 	{
 		let blob = blobs[key];
-		ret.set(new Uint8Array(blob.content), current_offset);
-		current_offset += blob.content.byteLength;
+		ret.set(new Uint8Array(blob), current_offset);
+		current_offset += blob.byteLength;
 	}
 
 	return ret;
@@ -49,7 +49,7 @@ function make_request_body(fields, blobs)
 	for(let key in blobs)
 	{
 		let blob = blobs[key];
-		let blob_size = blob.content.byteLength;
+		let blob_size = blob.byteLength;
 		let blob_info = {
 			size: blob_size,
 			start_offset: current_offset

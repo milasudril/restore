@@ -14,15 +14,26 @@ function find(array, value)
 	return ret === -1? array.length : ret;
 }
 
-function append_data_to_string(str, data)
+function append_data_to_string(str, blobs)
 {
 	let encoded_string = new TextEncoder().encode(str);
 	if(data.length === 0)
 	{ return encoded_string; }
 
-	let ret = new Uint8Array(encoded_string.length + data.length + 1);
+	let buffer_size = encoded_string.length + 1;
+	for(let key in blobs)
+	{ buffer_size += blobs[key].content.byteLength; }
+
+	let ret = new Uint8Array(buffer_size);
 	ret.set(encoded_string, 0);
-	ret.set(data, encoded_string.length + 1)
+
+	let current_offset = encoded_string.length + 1;
+	for(let key in blobs)
+	{
+		let blob = blobs[key];
+		ret.set(new Uint8Array(blob.content), current_offset);
+		current_offset += blob.content.byteLength;
+	}
 
 	return ret;
 }
@@ -35,7 +46,7 @@ function make_request_body(fields, blobs)
 	});
 
 	let current_offset = 1;
-	for(key in blobs)
+	for(let key in blobs)
 	{
 		let blob = blobs[key];
 		let blob_size = blob.content.byteLength;
@@ -56,12 +67,12 @@ function split_text_and_data(array)
 	return {body: new TextDecoder().decode(array.slice(0, i)), attachment_data: array.slice(i, array.length)};
 }
 
-function send_request(url, method = "GET", body, attachment_data = new ArrayBuffer())
+function send_request(url, method = "GET", fields, blobs = {})
 {
 	return fetch(url, {
 		method: method,
 		redirect: "error",
-		body: body? append_data_to_string(JSON.stringify(body), new Uint8Array(attachment_data)) : null
+		body: body? make_requset_body(fields, blobs) : null
 	}).then(function(res) {
 		return {succeeded: res.ok, pending_message: res.arrayBuffer()};
 	}).then(async function(data){

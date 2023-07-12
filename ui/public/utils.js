@@ -27,6 +27,29 @@ function append_data_to_string(str, data)
 	return ret;
 }
 
+function make_request_body(fields, blobs)
+{
+	let text_part = JSON.stringify({
+		fields: fields,
+		blobs: {}
+	});
+
+	let current_offset = 1;
+	for(key in blobs)
+	{
+		let blob = blobs[key];
+		let blob_size = blob.content.byteLength;
+		let blob_info = {
+			size: blob_size,
+			start_offset: current_offset
+		};
+		currrent_offset += blob_size;
+		text_part.blobs[key] = blob_info;
+	}
+
+	return append_data_to_string(text_part, blobs);
+}
+
 function split_text_and_data(array)
 {
 	let i = find(array, 0);

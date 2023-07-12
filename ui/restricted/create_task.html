@@ -36,11 +36,11 @@ async function submit_form(event, doc, subform)
 	output_object.name = doc.getElementById("task_name").value;
 	output_object.parameters = {};
 	output_object.initial_state = "initial_state_data";
-	serialize_form(subform, output_object.parameters, {initial_state_data:
-		file_to_array_buffer(doc.getElementById("initial_state").files[0])
-	});
+	serialize_form(subform, output_object.parameters);
 
-	let response = await send_request("/tasks", "POST", output_object);
+	let response = await send_request("/tasks", "POST", output_object, {
+		initial_state_data: await file_to_array_buffer(doc.getElementById("initial_state").files[0])
+	});
 	if(!response.succeeded)
 	{
 		alert("The server returned HTTP status " +

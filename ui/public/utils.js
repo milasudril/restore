@@ -40,10 +40,10 @@ function append_blobs_to_string(str, blobs)
 
 function make_request_body(fields, blobs)
 {
-	let text_part = JSON.stringify({
+	let message = {
 		fields: fields,
 		blobs: {}
-	});
+	};
 
 	let current_offset = 1;
 	for(let key in blobs)
@@ -54,11 +54,11 @@ function make_request_body(fields, blobs)
 			size: blob_size,
 			start_offset: current_offset
 		};
-		currrent_offset += blob_size;
-		text_part.blobs[key] = blob_info;
+		current_offset += blob_size;
+		message.blobs[key] = blob_info;
 	}
 
-	return append_blobs_to_string(text_part, blobs);
+	return append_blobs_to_string(JSON.stringify(message), blobs);
 }
 
 function split_text_and_data(array)

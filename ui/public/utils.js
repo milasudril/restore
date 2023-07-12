@@ -14,10 +14,10 @@ function find(array, value)
 	return ret === -1? array.length : ret;
 }
 
-function append_data_to_string(str, blobs)
+function append_blobs_to_string(str, blobs)
 {
 	let encoded_string = new TextEncoder().encode(str);
-	if(data.length === 0)
+	if(Object.entries(blobs).length === 0)
 	{ return encoded_string; }
 
 	let buffer_size = encoded_string.length + 1;
@@ -58,7 +58,7 @@ function make_request_body(fields, blobs)
 		text_part.blobs[key] = blob_info;
 	}
 
-	return append_data_to_string(text_part, blobs);
+	return append_blobs_to_string(text_part, blobs);
 }
 
 function split_text_and_data(array)
@@ -72,7 +72,7 @@ function send_request(url, method = "GET", fields, blobs = {})
 	return fetch(url, {
 		method: method,
 		redirect: "error",
-		body: body? make_requset_body(fields, blobs) : null
+		body: fields? make_request_body(fields, blobs) : null
 	}).then(function(res) {
 		return {succeeded: res.ok, pending_message: res.arrayBuffer()};
 	}).then(async function(data){

@@ -44,8 +44,13 @@ namespace restore
 				case state::read_blob:
 					abort();
 					break;
+				default:
+					__builtin_unreachable();
 			}
 		}
+
+		auto const& get_json() const
+		{ return m_container; }
 
 
 	private:

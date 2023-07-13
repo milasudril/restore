@@ -15,8 +15,6 @@ namespace restore
 	public:
 		explicit login_server(std::string_view session_key):
 			m_session_key{session_key},
-			m_session_info{std::make_unique<jopp::container>()},
-			m_session_info_parser{*m_session_info},
 			m_resp_ptr{nullptr},
 			m_bytes_to_read{0}
 		{ }
@@ -28,7 +26,7 @@ namespace restore
 		{
 			try
 			{
-				auto obj = m_session_info->get_if<jopp::object>();
+				auto obj = m_msg_decoder.get_json()->get_if<jopp::object>();
 				if(obj == nullptr)
 				{ throw std::runtime_error{"Expected login request to be an object"}; }
 
@@ -88,28 +86,11 @@ namespace restore
 		}
 
 		auto process_request_content(std::span<char const> buffer)
-		{
-			auto const res = m_session_info_parser.parse(buffer);
-			auto const bytes_written = static_cast<size_t>(res.ptr - std::begin(buffer));
-
-			if(res.ec == jopp::parser_error_code::completed || res.ec == jopp::parser_error_code::more_data_needed)
-			{
-				return http_write_req_result{
-					.bytes_written = bytes_written,
-					.ec = http_req_processing_result{res.ec}
-				};
-			}
-
-			return http_write_req_result{
-				.bytes_written = bytes_written,
-				.ec = http_req_processing_result{res.ec}
-			};
-		}
+		{ return m_msg_decoder.process_request_content(buffer); }
 
 	private:
 		std::string_view m_session_key;
-		std::unique_ptr<jopp::container> m_session_info;
-		jopp::parser m_session_info_parser;
+		message_decoder m_msg_decoder;
 
 		std::string m_response;
 		char const* m_resp_ptr;

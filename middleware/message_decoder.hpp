@@ -23,19 +23,27 @@ namespace restore
 					auto const res = m_parser.parse(buffer);
 					auto const bytes_written = static_cast<size_t>(res.ptr - std::begin(buffer));
 
-					if(res.ec == jopp::parser_error_code::completed || res.ec == jopp::parser_error_code::more_data_needed)
+					switch(res.ec)
 					{
-						return http_write_req_result{
+						case jopp::parser_error_code::completed:
+							m_current_state = state::wait_for_blobs;
+							return http_write_req_result{
+								.bytes_written = bytes_written,
+								.ec = http_req_processing_result{res.ec}
+							};
+
+						case jopp::parser_error_code::more_data_needed:
+							return http_write_req_result{
+								.bytes_written = bytes_written,
+								.ec = http_req_processing_result{res.ec}
+							};
+
+						default:
+							return http_write_req_result{
 							.bytes_written = bytes_written,
 							.ec = http_req_processing_result{res.ec}
 						};
 					}
-
-					return http_write_req_result{
-						.bytes_written = bytes_written,
-						.ec = http_req_processing_result{res.ec}
-					};
-					break;
 				}
 
 				case state::wait_for_blobs:

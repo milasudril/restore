@@ -1,6 +1,8 @@
 #ifndef RESTORE_LOGIN_SERVER_HPP
 #define RESTORE_LOGIN_SERVER_HPP
 
+
+#include "./message_decoder.hpp"
 #include "./http_request_result.hpp"
 
 #include <west/http_message_header.hpp>

@@ -85,8 +85,8 @@ namespace restore
 			};
 		}
 
-		auto process_request_content(std::span<char const> buffer, size_t)
-		{ return m_msg_decoder.process_request_content(buffer); }
+		auto process_request_content(std::span<char const> buffer, size_t bytes_to_read)
+		{ return m_msg_decoder.process_request_content(buffer, bytes_to_read); }
 
 	private:
 		std::string_view m_session_key;

@@ -14,7 +14,7 @@ namespace restore
 			m_current_state{state::read_json}
 		{}
 
-		auto process_request_content(std::span<char const> buffer)
+		auto process_request_content(std::span<char const> buffer, size_t)
 		{
 			switch(m_current_state)
 			{

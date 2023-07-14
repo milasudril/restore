@@ -58,7 +58,7 @@ namespace restore
 
 		west::http::finalize_state_result finalize_state(west::http::request_header const& header);
 
-		auto process_request_content(std::span<char const> buffer)
+		auto process_request_content(std::span<char const> buffer, size_t)
 		{
 			return std::visit([buffer](auto& server){
 				return server.process_request_content(buffer);

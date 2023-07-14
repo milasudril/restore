@@ -17,7 +17,7 @@ namespace restore
 			m_bytes_to_write{std::size(response)}
 		{ }
 
-		auto finalize_state(west::http::field_map& fields)
+		auto finalize_state(west::http::field_map& fields) const
 		{
 			fields.append("Content-Length", std::to_string(m_bytes_to_write))
 				.append("Content-Type", "application/json");
@@ -39,7 +39,7 @@ namespace restore
 			};
 		}
 
-		auto process_request_content(std::span<char const> buffer)
+		auto process_request_content(std::span<char const> buffer, size_t) const
 		{
 			return http_write_req_result{
 				.bytes_written = std::size(buffer),

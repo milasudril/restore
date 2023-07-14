@@ -41,16 +41,15 @@ namespace restore
 			};
 		}
 
-		auto read_response_content(std::span<char> buffer)
+		auto read_response_content(std::span<char>) const
 		{
-			printf("Read response content %zu\n", std::size(buffer));
 			return http_read_resp_result{
 				0,
 				http_req_processing_result{}
 			};
 		}
 
-		auto process_request_content(std::span<char const> buffer)
+		auto process_request_content(std::span<char const> buffer, size_t) const
 		{
 			return http_write_req_result{
 				.bytes_written = std::size(buffer),

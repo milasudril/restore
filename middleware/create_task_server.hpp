@@ -67,7 +67,7 @@ namespace restore
 			};
 		}
 
-		auto process_request_content(std::span<char const> buffer)
+		auto process_request_content(std::span<char const> buffer, size_t)
 		{ return m_msg_decoder.process_request_content(buffer); }
 
 	private:

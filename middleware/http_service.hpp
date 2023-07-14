@@ -58,10 +58,10 @@ namespace restore
 
 		west::http::finalize_state_result finalize_state(west::http::request_header const& header);
 
-		auto process_request_content(std::span<char const> buffer, size_t)
+		auto process_request_content(std::span<char const> buffer, size_t bytes_to_read)
 		{
-			return std::visit([buffer](auto& server){
-				return server.process_request_content(buffer);
+			return std::visit([buffer, bytes_to_read](auto& server){
+				return server.process_request_content(buffer, bytes_to_read);
 			}, m_current_server);
 		}
 

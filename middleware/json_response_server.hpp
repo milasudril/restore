@@ -42,7 +42,7 @@ namespace restore
 			};
 		}
 
-		auto process_request_content(std::span<char const> buffer)
+		auto process_request_content(std::span<char const> buffer, size_t) const
 		{
 			return http_write_req_result{
 				.bytes_written = std::size(buffer),

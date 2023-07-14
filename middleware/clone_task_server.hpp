@@ -72,7 +72,7 @@ namespace restore
 			};
 		}
 
-		auto process_request_content(std::span<char const> buffer)
+		auto process_request_content(std::span<char const> buffer, size_t)
 		{
 			auto const res = m_request_body_parser.parse(buffer);
 			auto const bytes_written = static_cast<size_t>(res.ptr - std::begin(buffer));

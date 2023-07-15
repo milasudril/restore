@@ -14,6 +14,36 @@ namespace restore
 		read_blob
 	};
 
+	enum class message_decoder_error_code{
+		root_is_not_an_object,
+		unknown_data_present,
+		blobs_is_not_an_object
+	};
+
+	inline constexpr bool can_continue(message_decoder_error_code)
+	{ return false; }
+
+	inline constexpr bool is_error_indicator(message_decoder_error_code)
+	{ return true; }
+
+	inline constexpr char const* to_string(message_decoder_error_code val)
+	{
+		switch(val)
+		{
+			case message_decoder_error_code::root_is_not_an_object:
+				return "Root must be an object";
+
+			case message_decoder_error_code::unknown_data_present:
+				return "Unknown data present";
+
+			case message_decoder_error_code::blobs_is_not_an_object:
+				return "`blobs` field must be an object";
+
+			default:
+				__builtin_unreachable();
+		}
+	}
+
 	std::pair<http_write_req_result, message_decoder_state>
 	decode_json(jopp::parser& parser, std::span<char const> buffer, size_t bytes_to_read);
 

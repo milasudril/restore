@@ -21,7 +21,7 @@ namespace restore
 		root_is_not_an_object,
 		unknown_data_present,
 		blobs_is_not_an_object,
-		blob_descriptor_is_not_an_object
+		message_truncated
 	};
 
 	inline constexpr bool can_continue(message_decoder_error_code)
@@ -43,8 +43,8 @@ namespace restore
 			case message_decoder_error_code::blobs_is_not_an_object:
 				return "`blobs` field must be an object";
 
-			case message_decoder_error_code::blob_descriptor_is_not_an_object:
-				return "A blob descriptor must be an object";
+			case message_decoder_error_code::message_truncated:
+				return "Message is truncated";
 
 			default:
 				__builtin_unreachable();

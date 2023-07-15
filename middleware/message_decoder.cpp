@@ -102,7 +102,40 @@ restore::decode_json(jopp::parser& parser,
 				};
 			}
 
+			if(std::size(*blobs_obj) == 0)
+			{
+				if(bytes_left == 0) [[likely]]
+				{
+					return std::pair{
+						http_write_req_result{
+							.bytes_written = bytes_written,
+							.ec = http_req_processing_result{res.ec}
+						},
+						message_decoder_state::wait_for_blobs
+					};
+				}
+
+				return std::pair{
+					http_write_req_result{
+						.bytes_written = bytes_written,
+						.ec = http_req_processing_result{message_decoder_error_code::unknown_data_present}
+					},
+					message_decoder_state::wait_for_blobs
+				};
+			}
+
 			blobs = collect_blob_descriptors(*blobs_obj);
+			auto const min_size = blobs.offset_and_name.back().start_offset;
+			if(min_size > bytes_left)
+			{
+				return std::pair{
+					http_write_req_result{
+						.bytes_written = bytes_written,
+						.ec = http_req_processing_result{message_decoder_error_code::message_truncated}
+					},
+					message_decoder_state::wait_for_blobs
+				};
+			}
 
 			return std::pair{
 				http_write_req_result{
@@ -154,6 +187,7 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 			case message_decoder_state::wait_for_blobs:
 				abort();
 				break;
+
 			case message_decoder_state::read_blob:
 				abort();
 				break;

@@ -176,12 +176,16 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 
 			case message_decoder_state::wait_for_blobs:
 			{
-				printf("Wait for blobs\n");
-				printf("%zu %zu\n", m_next_start_offset, m_bytes_read);
 				auto const bytes_left = static_cast<size_t>(m_next_start_offset - m_bytes_read);
 				auto const bytes_to_skip = std::min(bytes_left, std::size(buffer));
 				if(bytes_left == 0)
-				{ m_current_state = message_decoder_state::read_blob;}
+				{
+					// If we return 0, west will think there is a blocking socket, and we may not be called
+					// again. Therefore, we call ourselfs to process the data in the correct state.
+					m_current_state = message_decoder_state::read_blob;
+					return process_request_content(buffer, bytes_to_read);
+				}
+
 				m_bytes_read += bytes_to_skip;
 				return http_write_req_result{
 					.bytes_written = bytes_to_skip,

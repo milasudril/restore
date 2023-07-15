@@ -4,6 +4,44 @@
 
 #include <west/utils.hpp>
 
+#include <algorithm>
+
+restore::blobinfo restore::collect_blob_descriptors(jopp::object const& blobs)
+{
+	auto const n_objs = std::size(blobs);
+	blobinfo ret;
+	ret.name_and_fd.reserve(n_objs);
+	ret.offset_and_name.reserve(n_objs);
+
+	for(auto const& i : blobs)
+	{
+		auto const val = i.second.get_if<jopp::object>();
+		if(val == nullptr)
+		{
+			std::string errmesg{"Blob descriptor `"};
+			errmesg.append(i.first)
+				.append("` is not an object");
+
+			throw std::runtime_error{errmesg};
+		}
+
+		auto const start_offset = val->get_field_as<jopp::number>("start_offset");
+		ret.name_and_fd.push_back(restore::blob_name_fd{i.first, west::io::fd_owner{}});
+		ret.offset_and_name.push_back(restore::offset_blob_name{
+			static_cast<size_t>(start_offset),
+			i.first
+		});
+	}
+
+	// NOTE: name_and_fd is already sorted by name, since blobs is an std::map
+
+	std::ranges::sort(ret.offset_and_name, [](auto const& a, auto const& b) {
+		return a.start_offset < b.start_offset;
+	});
+
+	return ret;
+}
+
 std::pair<restore::http_write_req_result, restore::message_decoder_state>
 restore::decode_json(jopp::parser& parser, std::span<char const> buffer, size_t bytes_to_read)
 {
@@ -61,23 +99,7 @@ restore::decode_json(jopp::parser& parser, std::span<char const> buffer, size_t 
 				};
 			}
 
-			for(auto const& i : *blobs)
-			{
-				auto const val = i.second.get_if<jopp::object>();
-				if(val == nullptr)
-				{
-					return std::pair{
-						http_write_req_result{
-							.bytes_written = bytes_written,
-							.ec = http_req_processing_result{message_decoder_error_code::blob_descriptor_is_not_an_object}
-						},
-						message_decoder_state::wait_for_blobs
-					};
-				}
-
-				auto const start_offset = val->get_field_as<jopp::number>("start_offset");
-				printf("%s %.15g\n", i.first.c_str(), start_offset);
-			}
+			auto const blobinfo = collect_blob_descriptors(*blobs);
 
 			return std::pair{
 				http_write_req_result{

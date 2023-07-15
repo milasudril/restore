@@ -4,7 +4,10 @@
 #define RESTORE_MESSAGE_DECODER_HPP
 
 #include "./http_request_result.hpp"
+
 #include <jopp/parser.hpp>
+#include <west/io_fd.hpp>
+#include <vector>
 
 namespace restore
 {
@@ -47,6 +50,26 @@ namespace restore
 				__builtin_unreachable();
 		}
 	}
+
+	struct blob_name_fd
+	{
+		std::string name;
+		west::io::fd_owner fd;
+	};
+
+	struct offset_blob_name
+	{
+		size_t start_offset;
+		std::string name;
+	};
+
+	struct blobinfo
+	{
+		std::vector<blob_name_fd> name_and_fd;
+		std::vector<offset_blob_name> offset_and_name;
+	};
+
+	blobinfo collect_blob_descriptors(jopp::object const& blob_descriptor);
 
 	std::pair<http_write_req_result, message_decoder_state>
 	decode_json(jopp::parser& parser, std::span<char const> buffer, size_t bytes_to_read);

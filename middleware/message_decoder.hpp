@@ -96,6 +96,8 @@ namespace restore
 	private:
 		std::unique_ptr<jopp::container> m_container;
 		blobinfo m_blobs;
+		size_t m_bytes_read;
+		size_t m_next_start_offset;
 		jopp::parser m_parser;
 		message_decoder_state m_current_state;
 	};

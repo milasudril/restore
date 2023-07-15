@@ -76,7 +76,8 @@ restore::decode_json(jopp::parser& parser,
 
 	switch(res.ec)
 	{
-		case jopp::parser_error_code::completed: {
+		case jopp::parser_error_code::completed:
+		{
 			auto const root = parser.root().get_if<jopp::object>();
 			if(root == nullptr)
 			{
@@ -92,7 +93,7 @@ restore::decode_json(jopp::parser& parser,
 			auto const bytes_left = bytes_to_read - bytes_written;
 			auto const blobs_iter = root->find("blobs");
 			if(blobs_iter == std::end(*root))
-			{ return validate_bytes_to_read(bytes_written, bytes_to_read); }
+			{ return validate_bytes_to_read(bytes_written, bytes_left); }
 
 			auto const blobs_obj = blobs_iter->second.get_if<jopp::object>();
 			if(blobs_obj == nullptr)
@@ -107,7 +108,7 @@ restore::decode_json(jopp::parser& parser,
 			}
 
 			if(std::size(*blobs_obj) == 0)
-			{ return validate_bytes_to_read(bytes_written, bytes_to_read); }
+			{ return validate_bytes_to_read(bytes_written, bytes_left); }
 
 			blobs = collect_blob_descriptors(*blobs_obj);
 			auto const min_size = blobs.offset_and_name.back().start_offset;
@@ -163,17 +164,33 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 	{
 		switch(m_current_state)
 		{
-			case message_decoder_state::read_json: {
+			case message_decoder_state::read_json:
+			{
 				auto [ret, new_state] = decode_json(m_parser, m_blobs, buffer, bytes_to_read);
 				m_current_state = new_state;
+				if(std::size(m_blobs.offset_and_name) != 0)
+				{ m_next_start_offset = m_blobs.offset_and_name.front().start_offset; }
+				m_bytes_read = 0;
 				return ret;
 			}
 
 			case message_decoder_state::wait_for_blobs:
-				abort();
-				break;
+			{
+				printf("Wait for blobs\n");
+				printf("%zu %zu\n", m_next_start_offset, m_bytes_read);
+				auto const bytes_left = static_cast<size_t>(m_next_start_offset - m_bytes_read);
+				auto const bytes_to_skip = std::min(bytes_left, std::size(buffer));
+				if(bytes_left == 0)
+				{ m_current_state = message_decoder_state::read_blob;}
+				m_bytes_read += bytes_to_skip;
+				return http_write_req_result{
+					.bytes_written = bytes_to_skip,
+					.ec = http_req_processing_result{}
+				};
+			}
 
 			case message_decoder_state::read_blob:
+				printf("Read blob\n");
 				abort();
 				break;
 			default:

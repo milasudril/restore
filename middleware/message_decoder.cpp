@@ -59,6 +59,24 @@ restore::decode_json(jopp::parser& parser, std::span<char const> buffer, size_t 
 				};
 			}
 
+			for(auto const& i : *blobs)
+			{
+				auto const val = i.second.get_if<jopp::object>();
+				if(val == nullptr)
+				{
+					return std::pair{
+						http_write_req_result{
+							.bytes_written = bytes_written,
+							.ec = http_req_processing_result{message_decoder_error_code::blob_descriptor_is_not_an_object}
+						},
+						message_decoder_state::wait_for_blobs
+					};
+				}
+
+				auto const start_offset = val->get_field_as<jopp::number>("start_offset");
+				printf("%s %.15g\n", i.first.c_str(), start_offset);
+			}
+
 			return std::pair{
 				http_write_req_result{
 					.bytes_written = bytes_written,

@@ -72,6 +72,8 @@ namespace restore
 		std::vector<offset_blob_name> offset_and_name;
 	};
 
+	west::io::fd_ref find_fd(std::span<blob_name_fd const> blobs, std::string_view name);
+
 	blobinfo collect_blob_descriptors(jopp::object const& blob_descriptor);
 
 	std::pair<http_write_req_result, message_decoder_state>
@@ -97,7 +99,8 @@ namespace restore
 		std::unique_ptr<jopp::container> m_container;
 		blobinfo m_blobs;
 		size_t m_bytes_read;
-		size_t m_next_start_offset;
+		offset_blob_name const* m_current_blob;
+		west::io::fd_ref m_current_fd;
 		jopp::parser m_parser;
 		message_decoder_state m_current_state;
 	};

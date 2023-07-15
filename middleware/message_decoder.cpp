@@ -1,6 +1,7 @@
 //@	{"target":{"name": "./message_decoder.o"}}
 
 #include "./message_decoder.hpp"
+#include "./utils.hpp"
 
 #include <west/utils.hpp>
 
@@ -157,6 +158,26 @@ namespace
 	thread_local std::unique_ptr<char const[]> errbuff;
 }
 
+west::io::fd_ref restore::find_fd(std::span<blob_name_fd const> blobs, std::string_view name)
+{
+	auto const i = binary_find(std::begin(blobs),
+		std::end(blobs),
+		name,
+		west::overload{
+			[](std::string_view a, blob_name_fd const& b){
+				return a < b.name;
+			},
+			[](blob_name_fd const& a, std::string_view b){
+				return a.name < b;
+			}
+		}
+	);
+
+	assert(i != std::end(blobs));
+
+	return i->fd.get();
+}
+
 restore::http_write_req_result
 restore::message_decoder::process_request_content(std::span<char const> buffer, size_t bytes_to_read)
 {
@@ -169,20 +190,23 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 				auto [ret, new_state] = decode_json(m_parser, m_blobs, buffer, bytes_to_read);
 				m_current_state = new_state;
 				if(std::size(m_blobs.offset_and_name) != 0)
-				{ m_next_start_offset = m_blobs.offset_and_name.front().start_offset; }
+				{ m_current_blob = std::data(m_blobs.offset_and_name); }
 				m_bytes_read = 0;
 				return ret;
 			}
 
 			case message_decoder_state::wait_for_blobs:
 			{
-				auto const bytes_left = static_cast<size_t>(m_next_start_offset - m_bytes_read);
+				auto const bytes_left = static_cast<size_t>(m_current_blob->start_offset - m_bytes_read);
 				auto const bytes_to_skip = std::min(bytes_left, std::size(buffer));
 				if(bytes_left == 0)
 				{
+					m_current_fd = find_fd(m_blobs.name_and_fd, m_current_blob->name);
+					m_current_state = message_decoder_state::read_blob;
+					++m_current_blob;
+
 					// If we return 0, west will think there is a blocking socket, and we may not be called
 					// again. Therefore, we call ourselfs to process the data in the correct state.
-					m_current_state = message_decoder_state::read_blob;
 					return process_request_content(buffer, bytes_to_read);
 				}
 
@@ -194,9 +218,28 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 			}
 
 			case message_decoder_state::read_blob:
-				printf("Read blob\n");
-				abort();
-				break;
+				if(m_current_blob != std::data(m_blobs.offset_and_name) + std::size(m_blobs.offset_and_name))
+				{
+					auto const bytes_left = static_cast<size_t>(m_current_blob->start_offset - m_bytes_read);
+					auto const bytes_to_write = std::min(bytes_left, std::size(buffer));
+					if(bytes_to_write == 0)
+					{
+						++m_current_blob;
+						// If we return 0, west will think there is a blocking socket, and we may not be called
+						// again. Therefore, we call ourselfs to process the data in the correct state.
+						return process_request_content(buffer, bytes_to_read);
+					}
+					printf("(1) Writing %zu bytes\n", bytes_to_write);
+					return http_write_req_result{
+						.bytes_written = bytes_to_write,
+						.ec = http_req_processing_result{}
+					};
+				}
+				printf("(2) Writing %zu bytes\n", std::size(buffer));
+				return http_write_req_result{
+					.bytes_written = std::size(buffer),
+					.ec = http_req_processing_result{}
+				};
 			default:
 				__builtin_unreachable();
 		}

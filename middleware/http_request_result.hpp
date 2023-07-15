@@ -6,6 +6,7 @@
 #include <memory>
 #include <concepts>
 #include <functional>
+#include <bit>
 
 namespace restore
 {
@@ -18,8 +19,17 @@ namespace restore
 	constexpr bool is_error_indicator(jopp::parser_error_code val)
 	{ return val != jopp::parser_error_code::completed; }
 
+	constexpr bool can_continue(char const*)
+	{ return false; }
+
+	constexpr bool is_error_indicator(char const*)
+	{ return true;}
+
+	constexpr char const* to_string(char const* val)
+	{ return val; }
+
 	template<class T>
-	concept status_code = std::is_enum_v<T> && sizeof(T) <= sizeof(size_t) && requires(T x)
+	concept status_code = (std::is_enum_v<T> || std::same_as<T, char const*>) && sizeof(T) <= sizeof(intptr_t) && requires(T x)
 	{
 		{can_continue(x)} -> std::same_as<bool>;
 		{can_continue(x)} -> std::same_as<bool>;
@@ -28,33 +38,48 @@ namespace restore
 
 	struct http_req_processing_result_vtable
 	{
-		bool (*can_continue)(size_t value);
-		bool (*is_error_indicator)(size_t value);
-		char const* (*to_string)(size_t value);
+		bool (*can_continue)(intptr_t value);
+		bool (*is_error_indicator)(intptr_t value);
+		char const* (*to_string)(intptr_t value);
 	};
 
+	template<class T>
+	inline auto to_intptr(T val)
+	{ return static_cast<intptr_t>(val); }
+
+	inline auto to_intptr(char const* val)
+	{ return reinterpret_cast<intptr_t>(val); }
+
+	template<class T>
+	inline auto from_intptr(intptr_t val)
+	{ return static_cast<T>(val); }
+
+	template<>
+	inline auto from_intptr<char const*>(intptr_t val)
+	{ return reinterpret_cast<char const*>(val); }
+
 	inline constexpr http_req_processing_result_vtable status_code_vtable_nop{
-		.can_continue = [](size_t) {
+		.can_continue = [](intptr_t) {
 			return true;
 		},
-		.is_error_indicator =[](size_t) {
+		.is_error_indicator =[](intptr_t) {
 			return false;
 		},
-		.to_string = [](size_t){
+		.to_string = [](intptr_t){
 			return "";
 		}
 	};
 
 	template<status_code T>
 	inline constexpr http_req_processing_result_vtable status_code_vtable{
-		.can_continue = [](size_t value) {
-			return can_continue(static_cast<T>(value));
+		.can_continue = [](intptr_t value) {
+			return can_continue(from_intptr<T>(value));
 		},
-		.is_error_indicator =[](size_t value) {
-			return is_error_indicator(static_cast<T>(value));
+		.is_error_indicator =[](intptr_t value) {
+			return is_error_indicator(from_intptr<T>(value));
 		},
-		.to_string = [](size_t value){
-			return to_string(static_cast<T>(value));
+		.to_string = [](intptr_t value){
+			return to_string(from_intptr<T>(value));
 		}
 	};
 
@@ -66,7 +91,7 @@ namespace restore
 		template<status_code T>
 		explicit http_req_processing_result(T value):
 			m_vtable{status_code_vtable<T>},
-			m_value{static_cast<size_t>(value)}
+			m_value{to_intptr(value)}
 		{}
 
 		bool can_continue() const
@@ -80,7 +105,7 @@ namespace restore
 
 	private:
 		std::reference_wrapper<http_req_processing_result_vtable const> m_vtable;
-		size_t m_value;
+		intptr_t m_value;
 	};
 
 	inline bool can_continue(http_req_processing_result val)

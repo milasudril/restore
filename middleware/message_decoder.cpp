@@ -2,6 +2,8 @@
 
 #include "./message_decoder.hpp"
 
+#include <west/utils.hpp>
+
 std::pair<restore::http_write_req_result, restore::message_decoder_state>
 restore::decode_json(jopp::parser& parser, std::span<char const> buffer, size_t bytes_to_read)
 {
@@ -106,24 +108,40 @@ restore::decode_json(jopp::parser& parser, std::span<char const> buffer, size_t 
 	}
 }
 
+namespace
+{
+	thread_local std::unique_ptr<char const[]> errbuff;
+}
+
 restore::http_write_req_result
 restore::message_decoder::process_request_content(std::span<char const> buffer, size_t bytes_to_read)
 {
-	switch(m_current_state)
+	try
 	{
-		case message_decoder_state::read_json: {
-			auto [ret, new_state] = decode_json(m_parser, buffer, bytes_to_read);
-			m_current_state = new_state;
-			return ret;
-		}
+		switch(m_current_state)
+		{
+			case message_decoder_state::read_json: {
+				auto [ret, new_state] = decode_json(m_parser, buffer, bytes_to_read);
+				m_current_state = new_state;
+				return ret;
+			}
 
-		case message_decoder_state::wait_for_blobs:
-			abort();
-			break;
-		case message_decoder_state::read_blob:
-			abort();
-			break;
-		default:
-			__builtin_unreachable();
+			case message_decoder_state::wait_for_blobs:
+				abort();
+				break;
+			case message_decoder_state::read_blob:
+				abort();
+				break;
+			default:
+				__builtin_unreachable();
+		}
+	}
+	catch(const std::runtime_error& err)
+	{
+		errbuff = west::make_unique_cstr(err.what());
+		return http_write_req_result{
+			.bytes_written = 0,
+			.ec = http_req_processing_result{errbuff.get()}
+		};
 	}
 }

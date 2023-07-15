@@ -43,7 +43,10 @@ restore::blobinfo restore::collect_blob_descriptors(jopp::object const& blobs)
 }
 
 std::pair<restore::http_write_req_result, restore::message_decoder_state>
-restore::decode_json(jopp::parser& parser, std::span<char const> buffer, size_t bytes_to_read)
+restore::decode_json(jopp::parser& parser,
+	blobinfo& blobs,
+	std::span<char const> buffer,
+	size_t bytes_to_read)
 {
 	auto const res = parser.parse(buffer);
 	auto const bytes_written = static_cast<size_t>(res.ptr - std::begin(buffer));
@@ -87,8 +90,8 @@ restore::decode_json(jopp::parser& parser, std::span<char const> buffer, size_t 
 				};
 			}
 
-			auto const blobs = blobs_iter->second.get_if<jopp::object>();
-			if(blobs == nullptr)
+			auto const blobs_obj = blobs_iter->second.get_if<jopp::object>();
+			if(blobs_obj == nullptr)
 			{
 				return std::pair{
 					http_write_req_result{
@@ -99,7 +102,7 @@ restore::decode_json(jopp::parser& parser, std::span<char const> buffer, size_t 
 				};
 			}
 
-			auto const blobinfo = collect_blob_descriptors(*blobs);
+			blobs = collect_blob_descriptors(*blobs_obj);
 
 			return std::pair{
 				http_write_req_result{
@@ -143,7 +146,7 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 		switch(m_current_state)
 		{
 			case message_decoder_state::read_json: {
-				auto [ret, new_state] = decode_json(m_parser, buffer, bytes_to_read);
+				auto [ret, new_state] = decode_json(m_parser, m_blobs, buffer, bytes_to_read);
 				m_current_state = new_state;
 				return ret;
 			}

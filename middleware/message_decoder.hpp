@@ -72,7 +72,9 @@ namespace restore
 	blobinfo collect_blob_descriptors(jopp::object const& blob_descriptor);
 
 	std::pair<http_write_req_result, message_decoder_state>
-	decode_json(jopp::parser& parser, std::span<char const> buffer, size_t bytes_to_read);
+	decode_json(jopp::parser& parser,
+		blobinfo& blobs,
+		std::span<char const> buffer, size_t bytes_to_read);
 
 	class message_decoder
 	{
@@ -90,6 +92,7 @@ namespace restore
 
 	private:
 		std::unique_ptr<jopp::container> m_container;
+		blobinfo m_blobs;
 		jopp::parser m_parser;
 		message_decoder_state m_current_state;
 	};

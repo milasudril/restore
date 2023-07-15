@@ -6,6 +6,29 @@
 
 #include <algorithm>
 
+std::pair<restore::http_write_req_result, restore::message_decoder_state>
+restore::validate_bytes_to_read(size_t bytes_written, size_t bytes_left)
+{
+	if(bytes_left == 0) [[likely]]
+	{
+		return std::pair{
+			http_write_req_result{
+				.bytes_written = bytes_written,
+				.ec = http_req_processing_result{jopp::parser_error_code::completed}
+			},
+			message_decoder_state::wait_for_blobs
+		};
+	}
+
+	return std::pair{
+		http_write_req_result{
+			.bytes_written = bytes_written,
+			.ec = http_req_processing_result{message_decoder_error_code::unknown_data_present}
+		},
+		message_decoder_state::wait_for_blobs
+	};
+}
+
 restore::blobinfo restore::collect_blob_descriptors(jopp::object const& blobs)
 {
 	auto const n_objs = std::size(blobs);
@@ -69,26 +92,7 @@ restore::decode_json(jopp::parser& parser,
 			auto const bytes_left = bytes_to_read - bytes_written;
 			auto const blobs_iter = root->find("blobs");
 			if(blobs_iter == std::end(*root))
-			{
-				if(bytes_left == 0) [[likely]]
-				{
-					return std::pair{
-						http_write_req_result{
-							.bytes_written = bytes_written,
-							.ec = http_req_processing_result{res.ec}
-						},
-						message_decoder_state::wait_for_blobs
-					};
-				}
-
-				return std::pair{
-					http_write_req_result{
-						.bytes_written = bytes_written,
-						.ec = http_req_processing_result{message_decoder_error_code::unknown_data_present}
-					},
-					message_decoder_state::wait_for_blobs
-				};
-			}
+			{ return validate_bytes_to_read(bytes_written, bytes_to_read); }
 
 			auto const blobs_obj = blobs_iter->second.get_if<jopp::object>();
 			if(blobs_obj == nullptr)
@@ -103,26 +107,7 @@ restore::decode_json(jopp::parser& parser,
 			}
 
 			if(std::size(*blobs_obj) == 0)
-			{
-				if(bytes_left == 0) [[likely]]
-				{
-					return std::pair{
-						http_write_req_result{
-							.bytes_written = bytes_written,
-							.ec = http_req_processing_result{res.ec}
-						},
-						message_decoder_state::wait_for_blobs
-					};
-				}
-
-				return std::pair{
-					http_write_req_result{
-						.bytes_written = bytes_written,
-						.ec = http_req_processing_result{message_decoder_error_code::unknown_data_present}
-					},
-					message_decoder_state::wait_for_blobs
-				};
-			}
+			{ return validate_bytes_to_read(bytes_written, bytes_to_read); }
 
 			blobs = collect_blob_descriptors(*blobs_obj);
 			auto const min_size = blobs.offset_and_name.back().start_offset;

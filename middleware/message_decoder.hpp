@@ -51,6 +51,9 @@ namespace restore
 		}
 	}
 
+	std::pair<restore::http_write_req_result, restore::message_decoder_state>
+	validate_bytes_to_read(size_t bytes_written, size_t bytes_left);
+
 	struct blob_name_fd
 	{
 		std::string name;

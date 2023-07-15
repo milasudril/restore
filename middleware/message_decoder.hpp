@@ -8,15 +8,24 @@
 
 namespace restore
 {
+	enum class message_decoder_state{
+		read_json,
+		wait_for_blobs,
+		read_blob
+	};
+
+	std::pair<http_write_req_result, message_decoder_state>
+	decode_json(jopp::parser& parser, std::span<char const> buffer, size_t bytes_to_read);
+
 	class message_decoder
 	{
 	public:
 		message_decoder():m_container{std::make_unique<jopp::container>()},
 			m_parser{*m_container},
-			m_current_state{state::read_json}
+			m_current_state{message_decoder_state::read_json}
 		{}
 
-		http_write_req_result process_request_content(std::span<char const> buffer, size_t);
+		http_write_req_result process_request_content(std::span<char const> buffer, size_t bytes_to_read);
 
 		auto const& get_json() const
 		{ return m_container; }
@@ -25,14 +34,7 @@ namespace restore
 	private:
 		std::unique_ptr<jopp::container> m_container;
 		jopp::parser m_parser;
-
-		enum class state{
-			read_json,
-			wait_for_blobs,
-			read_blob
-		};
-
-		state m_current_state;
+		message_decoder_state m_current_state;
 	};
 }
 

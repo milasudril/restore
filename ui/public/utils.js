@@ -77,7 +77,6 @@ function send_request(url, method = "GET", fields, blobs = {})
 		return {succeeded: res.ok, pending_message: res.arrayBuffer()};
 	}).then(async function(data){
 		let message = split_text_and_data(new Uint8Array(await data.pending_message));
-		console.log(message.attachment_data);
 		return {succeeded: data.succeeded, message: JSON.parse(message.body)};
 	});
 }

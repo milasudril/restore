@@ -39,9 +39,7 @@ async function submit_form(event, doc, subform)
 	let blobs = {length: 0, values: {}};
 	await serialize_form(subform, output_object.parameters, blobs);
 
-	let response = await send_request("/tasks", "POST", output_object, {
-		initial_state_data: await file_to_array_buffer(doc.getElementById("initial_state").files[0])
-	});
+	let response = await send_request("/tasks", "POST", output_object, blobs.values);
 	if(!response.succeeded)
 	{
 		alert("The server returned HTTP status " +

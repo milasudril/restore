@@ -217,7 +217,9 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 				auto [ret, new_state] = decode_json(m_parser, m_blobs, m_tempdir, buffer, bytes_to_read);
 				m_current_state = new_state;
 				if(std::size(m_blobs.offset_and_name) != 0)
-				{ m_current_blob = std::data(m_blobs.offset_and_name); }
+				{
+					m_current_blob = std::data(m_blobs.offset_and_name);
+				}
 				m_bytes_read = 0;
 				return ret;
 			}
@@ -230,6 +232,7 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 				{
 					m_current_fd = find_fd(m_blobs.name_and_fd, m_current_blob->name);
 					m_current_state = message_decoder_state::read_blob;
+					printf("Reading blob %s\n", m_current_blob->name.c_str());
 					++m_current_blob;
 
 					// If we return 0, west will think there is a blocking socket, and we may not be called
@@ -251,14 +254,16 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 					auto const bytes_to_write = std::min(bytes_left, std::size(buffer));
 					if(bytes_to_write == 0)
 					{
-						++m_current_blob;
+						printf("Reading blob %s\n", m_current_blob->name.c_str());
 						m_current_fd = find_fd(m_blobs.name_and_fd, m_current_blob->name);
+						++m_current_blob;
 
 						// If we return 0, west will think there is a blocking socket, and we may not be called
 						// again. Therefore, we call ourselfs to process the data in the correct state.
 						return process_request_content(buffer, bytes_to_read);
 					}
 
+					printf("Reading blob %s\n", m_current_blob->name.c_str());
 					write_full(m_current_fd, std::span{std::data(buffer), bytes_to_write});
 
 					return http_write_req_result{

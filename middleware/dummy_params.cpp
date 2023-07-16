@@ -100,6 +100,19 @@ jopp::object restore::get_parameter_types()
 					fields.insert("has_water", std::move(has_water));
 				}
 
+				{
+					jopp::object image{};
+					image.insert("display", "inline");
+					{
+						jopp::object type{};
+						type.insert("category", "atom");
+						type.insert("name", "blob");
+						type.insert("input_size", "short");
+						image.insert("type", std::move(type));
+					}
+					fields.insert("image", std::move(image));
+				}
+
 				planet.insert("fields", std::move(fields));
 			}
 			composite.insert("planet", std::move(planet));

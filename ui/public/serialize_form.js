@@ -1,6 +1,6 @@
 "use strict";
 
-function serialize_value(input_field, type_name, blobs)
+async function serialize_value(input_field, type_name, blobs)
 {
 	if(type_name === "string")
 	{ return input_field.value; }
@@ -13,14 +13,16 @@ function serialize_value(input_field, type_name, blobs)
 
 	if(type_name === "blob")
 	{
+		let blob_name = input_field.files[0].name + "_" + blobs.length.toString();
+		blobs.values[blob_name] = await file_to_array_buffer(input_field.files[0])
 		blobs.length += 1;
-		return input_field.files[0].name + "_" + blobs.length.toString();
+		return blob_name;
 	}
 
 	return input_field.value;
 }
 
-function serialize_form(subform, output_object, blobs)
+async function serialize_form(subform, output_object, blobs)
 {
 	for(let item in subform.children)
 	{
@@ -41,10 +43,10 @@ function serialize_form(subform, output_object, blobs)
 					if(field_type_category === "composite")
 					{
 						output_object[field_name] = {};
-						serialize_form(field, output_object[field_name], blobs);
+						await serialize_form(field, output_object[field_name], blobs);
 					}
 					else
-					{ output_object[field_name] = serialize_value(field.children[0], field_type_name, blobs); }
+					{ output_object[field_name] = await serialize_value(field.children[0], field_type_name, blobs); }
 				}
 			}
 		}
@@ -60,10 +62,10 @@ function serialize_form(subform, output_object, blobs)
 			if(field_type_category === "composite")
 			{
 				output_object[field_name] = {};
-				serialize_form(field, output_object[field_name], blobs);
+				await serialize_form(field, output_object[field_name], blobs);
 			}
 			else
-			{ output_object[field_name] = serialize_value(field.children[1], field_type_name, blobs); }
+			{ output_object[field_name] = await serialize_value(field.children[1], field_type_name, blobs); }
 		}
 	}
 }

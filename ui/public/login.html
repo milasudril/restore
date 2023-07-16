@@ -28,7 +28,7 @@ async function submit_form(event, doc, subform)
 	event.preventDefault();
 
 	let output_object = {}
-	serialize_form(subform, output_object, {length: 0, values: {}});
+	await serialize_form(subform, output_object, {length: 0, values: {}});
 
 	let response = await send_request("/login", "POST", output_object);
 	if(!response.succeeded)

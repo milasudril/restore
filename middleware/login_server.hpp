@@ -15,6 +15,7 @@ namespace restore
 	public:
 		explicit login_server(std::string_view session_key):
 			m_session_key{session_key},
+			m_msg_decoder{"/tmp"},
 			m_resp_ptr{nullptr},
 			m_bytes_to_read{0}
 		{ }

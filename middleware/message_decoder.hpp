@@ -74,17 +74,23 @@ namespace restore
 
 	west::io::fd_ref find_fd(std::span<blob_name_fd const> blobs, std::string_view name);
 
-	blobinfo collect_blob_descriptors(jopp::object const& blob_descriptor);
+	void write_full(west::io::fd_ref fd, std::span<char const> buffer);
+
+	blobinfo collect_blob_descriptors(jopp::object const& blob_descriptor, char const* tempdir);
 
 	std::pair<http_write_req_result, message_decoder_state>
 	decode_json(jopp::parser& parser,
 		blobinfo& blobs,
-		std::span<char const> buffer, size_t bytes_to_read);
+		char const* tempdir,
+		std::span<char const> buffer,
+		size_t bytes_to_read);
 
 	class message_decoder
 	{
 	public:
-		message_decoder():m_container{std::make_unique<jopp::container>()},
+		explicit message_decoder(char const* tempdir):
+			m_container{std::make_unique<jopp::container>()},
+			m_tempdir{tempdir},
 			m_parser{*m_container},
 			m_current_state{message_decoder_state::read_json}
 		{}
@@ -100,6 +106,7 @@ namespace restore
 		blobinfo m_blobs;
 		size_t m_bytes_read;
 		offset_blob_name const* m_current_blob;
+		char const* m_tempdir;
 		west::io::fd_ref m_current_fd;
 		jopp::parser m_parser;
 		message_decoder_state m_current_state;

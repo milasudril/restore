@@ -39,7 +39,8 @@ namespace
 
 restore::task_registry::task_registry(char const* storage_file_name, task_factory create_task):
 	m_create_task{create_task},
-	m_storage_file{storage_file{storage_file_name}}
+	m_storage_file{storage_file{storage_file_name}},
+	m_sf_dir{absolute(std::filesystem::path{storage_file_name}).parent_path()}
 {
 	auto const entries = collect_entries(m_storage_file, task_prefix, 16);
 	for(auto const item : entries)

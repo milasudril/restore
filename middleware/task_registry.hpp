@@ -26,10 +26,14 @@ namespace restore
 
 		std::optional<task_running_status> set_running_status(std::string_view task_name, task_running_status new_status);
 
+		char const* get_tempdir() const
+		{ return m_sf_dir.c_str(); }
+
 	private:
 		task_factory m_create_task;
 		std::map<std::string, task_runner<type_erased_task>, std::less<>> m_tasks;
 		storage_file m_storage_file;
+		std::filesystem::path m_sf_dir;
 	};
 
 	jopp::object get_entries_as_json(task_registry const& registry);

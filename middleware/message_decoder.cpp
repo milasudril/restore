@@ -30,12 +30,13 @@ restore::validate_bytes_to_read(size_t bytes_written, size_t bytes_left)
 	};
 }
 
-restore::blobinfo restore::collect_blob_descriptors(jopp::object const& blobs)
+restore::blobinfo restore::collect_blob_descriptors(jopp::object const& blobs, char const* tempdir)
 {
 	auto const n_objs = std::size(blobs);
 	blobinfo ret;
 	ret.name_and_fd.reserve(n_objs);
 	ret.offset_and_name.reserve(n_objs);
+	printf("%s\n", tempdir);
 
 	for(auto const& i : blobs)
 	{
@@ -50,7 +51,10 @@ restore::blobinfo restore::collect_blob_descriptors(jopp::object const& blobs)
 		}
 
 		auto const start_offset = val->get_field_as<jopp::number>("start_offset");
-		ret.name_and_fd.push_back(restore::blob_name_fd{i.first, west::io::fd_owner{}});
+		ret.name_and_fd.push_back(restore::blob_name_fd{
+			.name = i.first,
+			.fd = west::io::open(tempdir, O_TMPFILE|O_RDWR, S_IRUSR|S_IWUSR)
+		});
 		ret.offset_and_name.push_back(restore::offset_blob_name{
 			static_cast<size_t>(start_offset),
 			i.first
@@ -69,6 +73,7 @@ restore::blobinfo restore::collect_blob_descriptors(jopp::object const& blobs)
 std::pair<restore::http_write_req_result, restore::message_decoder_state>
 restore::decode_json(jopp::parser& parser,
 	blobinfo& blobs,
+	char const* tempdir,
 	std::span<char const> buffer,
 	size_t bytes_to_read)
 {
@@ -111,7 +116,7 @@ restore::decode_json(jopp::parser& parser,
 			if(std::size(*blobs_obj) == 0)
 			{ return validate_bytes_to_read(bytes_written, bytes_left); }
 
-			blobs = collect_blob_descriptors(*blobs_obj);
+			blobs = collect_blob_descriptors(*blobs_obj, tempdir);
 			auto const min_size = blobs.offset_and_name.back().start_offset;
 			if(min_size > bytes_left)
 			{
@@ -178,6 +183,28 @@ west::io::fd_ref restore::find_fd(std::span<blob_name_fd const> blobs, std::stri
 	return i->fd.get();
 }
 
+void restore::write_full(west::io::fd_ref fd, std::span<char const> buffer)
+{
+	auto ptr       = std::data(buffer);
+	auto const end = std::data(buffer) + std::size(buffer);
+	while(ptr != end)
+	{
+		auto const bytes_left = end - ptr;
+		auto const n_written  = ::write(fd, ptr, bytes_left);
+		if(n_written == -1) [[unlikely]]
+		{
+			auto const err = errno;
+			if(err == EAGAIN || err == EWOULDBLOCK) [[likely]]
+			{ continue; }
+			throw west::system_error{"I/O error", err};
+		}
+
+		if(n_written == 0) { return; }
+
+		ptr += n_written;
+	}
+}
+
 restore::http_write_req_result
 restore::message_decoder::process_request_content(std::span<char const> buffer, size_t bytes_to_read)
 {
@@ -187,7 +214,7 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 		{
 			case message_decoder_state::read_json:
 			{
-				auto [ret, new_state] = decode_json(m_parser, m_blobs, buffer, bytes_to_read);
+				auto [ret, new_state] = decode_json(m_parser, m_blobs, m_tempdir, buffer, bytes_to_read);
 				m_current_state = new_state;
 				if(std::size(m_blobs.offset_and_name) != 0)
 				{ m_current_blob = std::data(m_blobs.offset_and_name); }
@@ -225,17 +252,23 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 					if(bytes_to_write == 0)
 					{
 						++m_current_blob;
+						m_current_fd = find_fd(m_blobs.name_and_fd, m_current_blob->name);
+
 						// If we return 0, west will think there is a blocking socket, and we may not be called
 						// again. Therefore, we call ourselfs to process the data in the correct state.
 						return process_request_content(buffer, bytes_to_read);
 					}
-					printf("(1) Writing %zu bytes\n", bytes_to_write);
+
+					write_full(m_current_fd, std::span{std::data(buffer), bytes_to_write});
+
 					return http_write_req_result{
 						.bytes_written = bytes_to_write,
 						.ec = http_req_processing_result{}
 					};
 				}
-				printf("(2) Writing %zu bytes\n", std::size(buffer));
+
+				write_full(m_current_fd, buffer);
+
 				return http_write_req_result{
 					.bytes_written = std::size(buffer),
 					.ec = http_req_processing_result{}
@@ -244,7 +277,9 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 				__builtin_unreachable();
 		}
 	}
-	catch(const std::runtime_error& err)
+	catch(west::system_error const&)
+	{ throw; }
+	catch(std::runtime_error const& err)
 	{
 		errbuff = west::make_unique_cstr(err.what());
 		return http_write_req_result{

@@ -14,6 +14,7 @@ namespace restore
 	{
 	public:
 		explicit create_task_server(task_registry& tasks):
+			m_msg_decoder{tasks.get_tempdir()},
 			m_resp_ptr{nullptr},
 			m_bytes_to_read{0},
 			m_tasks{tasks}

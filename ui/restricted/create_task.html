@@ -36,7 +36,7 @@ async function submit_form(event, doc, subform)
 	output_object.name = doc.getElementById("task_name").value;
 	output_object.parameters = {};
 	output_object.initial_state = "initial_state_data";
-	serialize_form(subform, output_object.parameters, {value: 0});
+	serialize_form(subform, output_object.parameters, {length: 0, values: {}});
 
 	let response = await send_request("/tasks", "POST", output_object, {
 		initial_state_data: await file_to_array_buffer(doc.getElementById("initial_state").files[0])

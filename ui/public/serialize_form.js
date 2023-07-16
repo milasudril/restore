@@ -1,6 +1,6 @@
 "use strict";
 
-function serialize_value(input_field, type_name, blob_counter)
+function serialize_value(input_field, type_name, blobs)
 {
 	if(type_name === "string")
 	{ return input_field.value; }
@@ -13,14 +13,14 @@ function serialize_value(input_field, type_name, blob_counter)
 
 	if(type_name === "blob")
 	{
-		blob_counter.value += 1;
-		return input_field.files[0].name + "_" + blob_counter.value.toString();
+		blobs.length += 1;
+		return input_field.files[0].name + "_" + blobs.length.toString();
 	}
 
 	return input_field.value;
 }
 
-function serialize_form(subform, output_object, blob_counter)
+function serialize_form(subform, output_object, blobs)
 {
 	for(let item in subform.children)
 	{
@@ -41,10 +41,10 @@ function serialize_form(subform, output_object, blob_counter)
 					if(field_type_category === "composite")
 					{
 						output_object[field_name] = {};
-						serialize_form(field, output_object[field_name], blob_counter);
+						serialize_form(field, output_object[field_name], blobs);
 					}
 					else
-					{ output_object[field_name] = serialize_value(field.children[0], field_type_name, blob_counter); }
+					{ output_object[field_name] = serialize_value(field.children[0], field_type_name, blobs); }
 				}
 			}
 		}
@@ -60,10 +60,10 @@ function serialize_form(subform, output_object, blob_counter)
 			if(field_type_category === "composite")
 			{
 				output_object[field_name] = {};
-				serialize_form(field, output_object[field_name], blob_counter);
+				serialize_form(field, output_object[field_name], blobs);
 			}
 			else
-			{ output_object[field_name] = serialize_value(field.children[1], field_type_name, blob_counter); }
+			{ output_object[field_name] = serialize_value(field.children[1], field_type_name, blobs); }
 		}
 	}
 }

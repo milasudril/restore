@@ -100,6 +100,8 @@ namespace restore
 		auto const& get_json() const
 		{ return m_container; }
 
+		std::span<blob_name_fd const> get_blobs() const
+		{ return m_blobs.name_and_fd; }
 
 	private:
 		std::unique_ptr<jopp::container> m_container;

@@ -177,6 +177,19 @@ jopp::object restore::get_task_parameters()
 	}
 
 	{
+		jopp::object image{};
+		image.insert("display", "inline");
+		{
+			jopp::object type{};
+			type.insert("category", "atom");
+			type.insert("name", "blob");
+			type.insert("input_size", "short");
+			image.insert("type", std::move(type));
+		}
+		ret.insert("image", std::move(image));
+	}
+
+	{
 		jopp::object home_world{};
 		home_world.insert("display", "block");
 		{

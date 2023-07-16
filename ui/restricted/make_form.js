@@ -40,8 +40,16 @@ function create_input_field_atom(element_factory, type)
 		return element;
 	}
 	else
+	if(type.name === "blob")
 	{
 		let element = element_factory.createElement("input");
+		element.setAttribute("type", "file");
+		return element;
+	}
+	else
+	{
+		let element = element_factory.createElement("input");
+		element.setAttribute("type", "text");
 		return element;
 	}
 }

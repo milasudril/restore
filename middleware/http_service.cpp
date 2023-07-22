@@ -463,10 +463,10 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 		return retval;
 	}
 
-	if(req_target == "/parameter_types")
+	if(req_target == "/compound_types")
 	{
 		auto [retval, server] = serve_parameter_types(header,
-			jopp::json_buffer_view{m_mw_instance.get().taskinfo.parameter_types},
+			jopp::json_buffer_view{m_mw_instance.get().taskinfo.compound_types},
 			session_status);
 		m_current_server = std::move(server);
 		return retval;

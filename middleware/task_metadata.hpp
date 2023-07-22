@@ -9,7 +9,7 @@ namespace restore
 {
 	struct task_metadata
 	{
-			jopp::json_buffer parameter_types;
+			jopp::json_buffer compound_types;
 			jopp::json_buffer parameters;
 			task_factory factory;
 	};

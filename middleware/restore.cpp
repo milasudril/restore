@@ -35,7 +35,8 @@ int main(int argc, char** argv)
 	jopp::object task_params_response;
 	auto mw_instance = restore::create_middleware_instance(mw_config,
 		restore::task_metadata{
-			.compound_types = jopp::json_buffer{restore::wrap_in_message(restore::get_parameter_types())},
+			.compound_types = jopp::json_buffer{restore::wrap_in_message(restore::get_compound_types())},
+			.state_descriptor = jopp::json_buffer{restore::wrap_in_message(restore::get_state_descriptor())},
 			.parameters = jopp::json_buffer{restore::wrap_in_message(restore::get_task_parameters())},
 			.factory = restore::create_task<restore::dummy_task>
 		});

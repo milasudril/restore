@@ -11,8 +11,9 @@
 
 namespace restore
 {
-	jopp::object get_parameter_types();
+	jopp::object get_compound_types();
 	jopp::object get_task_parameters();
+	jopp::object get_state_descriptor();
 
 	struct dummy_task
 	{

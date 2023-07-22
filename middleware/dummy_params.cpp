@@ -2,7 +2,20 @@
 
 #include "./dummy_params.hpp"
 
-jopp::object restore::get_parameter_types()
+jopp::object restore::get_state_descriptor()
+{
+	jopp::object ret{};
+	jopp::object data{};
+	data.insert("display", "inline");
+	jopp::object type{};
+	type.insert("category", "atom");
+	type.insert("name", "blob");
+	data.insert("type", std::move(type));
+	ret.insert("data", std::move(data));
+	return ret;
+}
+
+jopp::object restore::get_compound_types()
 {
 	// Set dummy data for testing purpose
 	jopp::object ret{};

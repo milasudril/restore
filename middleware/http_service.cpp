@@ -463,6 +463,15 @@ west::http::finalize_state_result restore::http_service::finalize_state(west::ht
 		return retval;
 	}
 
+	if(req_target == "/state_descriptor")
+	{
+		auto [retval, server] = serve_task_parameters(header,
+			jopp::json_buffer_view{m_mw_instance.get().taskinfo.state_descriptor},
+			session_status);
+		m_current_server = std::move(server);
+		return retval;
+	}
+
 	if(req_target == "/compound_types")
 	{
 		auto [retval, server] = serve_parameter_types(header,

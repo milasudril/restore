@@ -15,17 +15,20 @@ th.row-header{text-align: left}
 <script>
 let pending_types = send_request("/compound_types");
 let pending_params = send_request("/task_parameters");
-let pending_init_state = send_request("/state_descriptor");
+let pending_state_descriptor = send_request("/state_descriptor");
 
 window.onload = async function() {
 	await redirect_if_not_logged_in(location, document);
 	let get_compound_types_result = await pending_types;
 	let get_params_result = await pending_params;
+	let get_pending_descriptor_result = await pending_state_descriptor;
 
-	if(get_compound_types_result.succeeded && get_params_result.succeeded)
+	if(get_compound_types_result.succeeded &&
+		get_params_result.succeeded &&
+		get_pending_descriptor_result.succeeded)
 	{
 		let types = get_compound_types_result.message.fields;
-		let init_state = {};
+		let init_state = get_pending_descriptor_result.message.fields;
 		let params = get_params_result.message.fields;
 		generate_form(document, document.getElementById("init_state"), init_state, types);
 		generate_form(document, document.getElementById("paraminputs"), params, types)

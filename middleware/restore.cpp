@@ -4,6 +4,7 @@
 #include "./server_socket.hpp"
 #include "./http_service.hpp"
 #include "./dummy_params.hpp"
+#include "./message_encoder.hpp"
 
 #include <west/service_registry.hpp>
 #include <west/http_server.hpp>
@@ -31,10 +32,11 @@ int main(int argc, char** argv)
 	auto http_socket = restore::create_server_socket(http_server_socket_cfg);
 
 	auto const& mw_config = cfg.get_field_as<jopp::object>("middleware_instance");
+	jopp::object task_params_response;
 	auto mw_instance = restore::create_middleware_instance(mw_config,
 		restore::task_metadata{
-			.parameter_types = jopp::json_buffer{restore::get_parameter_types()},
-			.parameters = jopp::json_buffer{restore::get_task_parameters()},
+			.parameter_types = jopp::json_buffer{restore::wrap_in_message(restore::get_parameter_types())},
+			.parameters = jopp::json_buffer{restore::wrap_in_message(restore::get_task_parameters())},
 			.factory = restore::create_task<restore::dummy_task>
 		});
 

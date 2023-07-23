@@ -22,7 +22,7 @@ function append_blobs_to_string(str, blobs)
 
 	let buffer_size = encoded_string.length + 1;
 	for(let key in blobs)
-	{ buffer_size += blobs[key].byteLength; }
+	{ buffer_size += blobs[key].data.byteLength; }
 
 	let ret = new Uint8Array(buffer_size);
 	ret.set(encoded_string, 0);
@@ -30,7 +30,7 @@ function append_blobs_to_string(str, blobs)
 	let current_offset = encoded_string.length + 1;
 	for(let key in blobs)
 	{
-		let blob = blobs[key];
+		let blob = blobs[key].data;
 		ret.set(new Uint8Array(blob), current_offset);
 		current_offset += blob.byteLength;
 	}
@@ -49,10 +49,11 @@ function make_request_body(fields, blobs)
 	for(let key in blobs)
 	{
 		let blob = blobs[key];
-		let blob_size = blob.byteLength;
+		let blob_size = blob.data.byteLength;
 		let blob_info = {
 			size: blob_size,
-			start_offset: current_offset
+			start_offset: current_offset,
+			json_path: blob.json_path
 		};
 		current_offset += blob_size;
 		message.blobs[key] = blob_info;

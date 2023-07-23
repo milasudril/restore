@@ -20,9 +20,20 @@ restore::name_to_fd_map::name_to_fd_map(jopp::object const& blobs, char const* t
 			throw std::runtime_error{errmesg};
 		}
 
+		std::vector<std::string> json_path;
+		for(auto const& item : val->get_field_as<jopp::array>("json_path"))
+		{
+			auto str = item.get_if<jopp::string>();
+			if(str == nullptr)
+			{ throw std::runtime_error{"Expected json path element to be a string"}; }
+
+			json_path.push_back(*str);
+		}
+
 		m_data.push_back(restore::name_and_fd{
 			.name = i.first,
-			.fd = west::io::open(tempdir, O_TMPFILE|O_RDWR, S_IRUSR|S_IWUSR)
+			.fd = west::io::open(tempdir, O_TMPFILE|O_RDWR, S_IRUSR|S_IWUSR),
+			.json_path = std::move(json_path)
 		});
 	}
 

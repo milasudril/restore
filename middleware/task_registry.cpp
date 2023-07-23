@@ -68,7 +68,14 @@ void restore::task_registry::create_task(std::string_view task_name,
 	std::ranges::for_each(blobs, [](auto const& item) {
 		struct stat statbuf{};
 		::fstat(item.fd.get(), &statbuf);
-		printf("%s -> %d (Size: %zu bytes)\n", item.name.c_str(), static_cast<int>(item.fd.get()),statbuf.st_size);
+		std::string json_path{};
+		for(auto const& path_component : item.json_path)
+		{ json_path.append(path_component).append("/"); }
+
+		printf("[%s] %s -> %d (Size: %zu bytes)\n",
+			json_path.c_str(),
+			item.name.c_str(),
+			static_cast<int>(item.fd.get()),statbuf.st_size);
 	});
 	putchar('\n');
 

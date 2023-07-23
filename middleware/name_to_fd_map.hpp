@@ -15,6 +15,7 @@ namespace restore
 	{
 		std::string name;
 		west::io::fd_owner fd;
+		std::vector<std::string> json_path;
 	};
 
 	class name_to_fd_map

@@ -1,6 +1,6 @@
 "use strict";
 
-async function serialize_value(input_field, type_name, blobs)
+async function serialize_value(input_field, type_name, blobs, path)
 {
 	if(type_name === "string")
 	{ return input_field.value; }
@@ -16,7 +16,10 @@ async function serialize_value(input_field, type_name, blobs)
 		if(input_field.files[0] !== undefined)
 		{
 			let blob_name = input_field.files[0].name + "_" + blobs.length.toString();
-			blobs.values[blob_name] = await file_to_array_buffer(input_field.files[0])
+			blobs.values[blob_name] = {
+				data: await file_to_array_buffer(input_field.files[0]),
+				json_path: path
+			};
 			blobs.length += 1;
 			return blob_name;
 		}
@@ -26,7 +29,7 @@ async function serialize_value(input_field, type_name, blobs)
 	return input_field.value;
 }
 
-async function serialize_form(subform, output_object, blobs)
+async function serialize_form(subform, output_object, blobs, path = [])
 {
 	for(let item in subform.children)
 	{
@@ -47,10 +50,12 @@ async function serialize_form(subform, output_object, blobs)
 					if(field_type_category === "composite")
 					{
 						output_object[field_name] = {};
-						await serialize_form(field, output_object[field_name], blobs);
+						let new_path = Array.from(path);
+						new_path.push(field_name);
+						await serialize_form(field, output_object[field_name], blobs, new_path);
 					}
 					else
-					{ output_object[field_name] = await serialize_value(field.children[0], field_type_name, blobs); }
+					{ output_object[field_name] = await serialize_value(field.children[0], field_type_name, blobs, path); }
 				}
 			}
 		}
@@ -66,10 +71,12 @@ async function serialize_form(subform, output_object, blobs)
 			if(field_type_category === "composite")
 			{
 				output_object[field_name] = {};
-				await serialize_form(field, output_object[field_name], blobs);
+				let new_path = Array.from(path);
+				new_path.push(field_name);
+				await serialize_form(field, output_object[field_name], blobs, new_path);
 			}
 			else
-			{ output_object[field_name] = await serialize_value(field.children[1], field_type_name, blobs); }
+			{ output_object[field_name] = await serialize_value(field.children[1], field_type_name, blobs, path); }
 		}
 	}
 }

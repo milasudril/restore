@@ -40,11 +40,10 @@ async function submit_form(event, doc, subform)
 	event.preventDefault();
 
 	let output_object = {};
-	output_object.name = doc.getElementById("task_name").value;
-	output_object.parameters = {};
-	output_object.initial_state = "initial_state_data";
 	let blobs = {length: 0, values: {}};
-	await serialize_form(subform, output_object.parameters, blobs);
+	await serialize_form(subform, output_object, blobs);
+
+	console.log(output_object);
 
 	let response = await send_request("/tasks", "POST", output_object, blobs.values);
 	if(!response.succeeded)
@@ -65,7 +64,7 @@ async function submit_form(event, doc, subform)
 
 	</head>
 	<body>
-	<form onsubmit="return submit_form(event, document, paraminputs);">
+	<form onsubmit="return submit_form(event, document, task_setup);" id="task_setup">
 		<h1>Create task</h1>
 		<table>
 			<tr>
@@ -76,11 +75,11 @@ async function submit_form(event, doc, subform)
 			</tr>
 		</table>
 
-		<section id="init_state">
+		<section id="init_state" field-name="initial_state" filed-type-name="initial_state_cfg" field-type-category="composite">
 			<h1>Initial state</h1>
 		</section>
 
-		<section id="paraminputs">
+		<section id="paraminputs" field-name="parameters" filed-type-name="task_param_list" field-type-category="composite">
 			<h1>Parameters</h1>
 		</section>
 		<nav id="formactions">

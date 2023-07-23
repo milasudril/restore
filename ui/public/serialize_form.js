@@ -13,10 +13,14 @@ async function serialize_value(input_field, type_name, blobs)
 
 	if(type_name === "blob")
 	{
-		let blob_name = input_field.files[0].name + "_" + blobs.length.toString();
-		blobs.values[blob_name] = await file_to_array_buffer(input_field.files[0])
-		blobs.length += 1;
-		return blob_name;
+		if(input_field.files[0] !== undefined)
+		{
+			let blob_name = input_field.files[0].name + "_" + blobs.length.toString();
+			blobs.values[blob_name] = await file_to_array_buffer(input_field.files[0])
+			blobs.length += 1;
+			return blob_name;
+		}
+		return null;
 	}
 
 	return input_field.value;

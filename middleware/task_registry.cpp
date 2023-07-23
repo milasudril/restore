@@ -64,8 +64,11 @@ void restore::task_registry::create_task(std::string_view task_name,
 	jopp::object const&,
 	name_to_fd_map const& blobs)
 {
+	rewind_all(blobs);
 	std::ranges::for_each(blobs, [](auto const& item) {
-		printf("%s -> %d\n", item.name.c_str(), static_cast<int>(item.fd.get()));
+		struct stat statbuf{};
+		::fstat(item.fd.get(), &statbuf);
+		printf("%s -> %d (Size: %zu bytes)\n", item.name.c_str(), static_cast<int>(item.fd.get()),statbuf.st_size);
 	});
 	putchar('\n');
 

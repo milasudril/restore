@@ -7,6 +7,7 @@
 #include <jopp/types.hpp>
 
 #include <string>
+#include <algorithm>
 
 namespace restore
 {
@@ -43,6 +44,13 @@ namespace restore
 	private:
 		std::vector<name_and_fd> m_data;
 	};
+
+	inline void rewind_all(name_to_fd_map const& fds)
+	{
+		std::ranges::for_each(fds, [](auto const& item) {
+			::lseek(item.fd.get(), 0, SEEK_SET);
+		});
+	}
 }
 
 #endif

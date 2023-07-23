@@ -23,7 +23,7 @@ namespace restore
 		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
 		{ return std::strong_ordering::equal; }
 
-		auto finalize_state(west::http::field_map& fields)
+		auto finalize_state(west::http::field_map& response_fields)
 		{
 			try
 			{
@@ -31,8 +31,10 @@ namespace restore
 				if(obj == nullptr)
 				{ throw std::runtime_error{"Expected request to be an object"}; }
 
-				auto const& task_name = obj->get_field_as<jopp::string>("name");
-				auto const& params = obj->get_field_as<jopp::object>("parameters");
+				auto const& fields = obj->get_field_as<jopp::object>("fields");
+
+				auto const& task_name = fields.get_field_as<jopp::string>("name");
+				auto const& params = fields.get_field_as<jopp::object>("parameters");
 
 				m_tasks.get().create_task(task_name, params);
 
@@ -42,7 +44,7 @@ namespace restore
 				m_response = to_string(resp_obj);
 				m_resp_ptr = std::data(m_response);
 				m_bytes_to_read = std::size(m_response);
-				fields.append("Content-Length", std::to_string(m_bytes_to_read));
+				response_fields.append("Content-Length", std::to_string(m_bytes_to_read));
 
 				return west::http::finalize_state_result{};
 			}

@@ -255,6 +255,7 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 					if(bytes_to_write == 0)
 					{
 						printf("Reading blob %s\n", m_current_blob->name.c_str());
+						::lseek(m_current_fd, 0, SEEK_SET);
 						m_current_fd = find_fd(m_blobs.name_and_fd, m_current_blob->name);
 						++m_current_blob;
 

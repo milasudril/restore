@@ -227,11 +227,11 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 					m_current_fd = i->fd.get();
 
 					m_current_state = message_decoder_state::read_blob;
-					printf("Reading blob %s\n", m_current_blob->name.c_str());
+					printf("(wait for blob) Reading blob %s\n", m_current_blob->name.c_str());
 					++m_current_blob;
 
 					// If we return 0, west will think there is a blocking socket, and we may not be called
-					// again. Therefore, we call ourselfs to process the data in the correct state.
+					// again. Therefore, we call ourself to process the data in the correct state.
 					return process_request_content(buffer, bytes_to_read);
 				}
 
@@ -249,7 +249,7 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 					auto const bytes_to_write = std::min(bytes_left, std::size(buffer));
 					if(bytes_to_write == 0)
 					{
-						printf("Reading blob %s\n", m_current_blob->name.c_str());
+						printf("(read blob) Reading blob %s\n", m_current_blob->name.c_str());
 						::lseek(m_current_fd, 0, SEEK_SET);
 						auto const i = m_blobs.name_and_fd.find(m_current_blob->name);
 						assert(i != std::end(m_blobs.name_and_fd));
@@ -257,11 +257,12 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 						++m_current_blob;
 
 						// If we return 0, west will think there is a blocking socket, and we may not be called
-						// again. Therefore, we call ourselfs to process the data in the correct state.
+						// again. Therefore, we call ourself to process the data in the correct state.
 						return process_request_content(buffer, bytes_to_read);
 					}
 
 					write_full(m_current_fd, std::span{std::data(buffer), bytes_to_write});
+					m_bytes_read += bytes_to_write;
 
 					return http_write_req_result{
 						.bytes_written = bytes_to_write,
@@ -270,6 +271,7 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 				}
 
 				write_full(m_current_fd, buffer);
+				m_bytes_read += std::size(buffer);
 
 				return http_write_req_result{
 					.bytes_written = std::size(buffer),

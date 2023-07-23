@@ -4,6 +4,7 @@
 #define RESTORE_MESSAGE_DECODER_HPP
 
 #include "./http_request_result.hpp"
+#include "./name_to_fd_map.hpp"
 
 #include <jopp/parser.hpp>
 #include <west/io_fd.hpp>
@@ -68,7 +69,7 @@ namespace restore
 
 	struct blobinfo
 	{
-		std::vector<blob_name_fd> name_and_fd;
+		name_to_fd_map name_and_fd;
 		std::vector<offset_blob_name> offset_and_name;
 	};
 
@@ -100,7 +101,7 @@ namespace restore
 		auto const& get_json() const
 		{ return m_container; }
 
-		std::span<blob_name_fd const> get_blobs() const
+		auto const& get_blobs() const
 		{ return m_blobs.name_and_fd; }
 
 	private:

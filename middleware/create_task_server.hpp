@@ -35,8 +35,9 @@ namespace restore
 
 				auto const& task_name = fields.get_field_as<jopp::string>("name");
 				auto const& params = fields.get_field_as<jopp::object>("parameters");
+				auto const& initial_state = fields.get_field_as<jopp::object>("initial_state");
 
-				m_tasks.get().create_task(task_name, params);
+				m_tasks.get().create_task(task_name, params, initial_state, m_msg_decoder.get_blobs());
 
 				jopp::object resp_obj{};
 				resp_obj.insert("result", "successful");

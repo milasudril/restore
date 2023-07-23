@@ -32,11 +32,9 @@ restore::validate_bytes_to_read(size_t bytes_written, size_t bytes_left)
 
 restore::blobinfo restore::collect_blob_descriptors(jopp::object const& blobs, char const* tempdir)
 {
-	auto const n_objs = std::size(blobs);
 	blobinfo ret;
-	ret.name_and_fd.reserve(n_objs);
-	ret.offset_and_name.reserve(n_objs);
-	printf("%s\n", tempdir);
+	ret.name_and_fd = name_to_fd_map(blobs, tempdir);
+	ret.offset_and_name.reserve(std::size(blobs));
 
 	for(auto const& i : blobs)
 	{
@@ -51,17 +49,11 @@ restore::blobinfo restore::collect_blob_descriptors(jopp::object const& blobs, c
 		}
 
 		auto const start_offset = val->get_field_as<jopp::number>("start_offset");
-		ret.name_and_fd.push_back(restore::blob_name_fd{
-			.name = i.first,
-			.fd = west::io::open(tempdir, O_TMPFILE|O_RDWR, S_IRUSR|S_IWUSR)
-		});
 		ret.offset_and_name.push_back(restore::offset_blob_name{
 			static_cast<size_t>(start_offset),
 			i.first
 		});
 	}
-
-	// NOTE: name_and_fd is already sorted by name, since blobs is an std::map
 
 	std::ranges::sort(ret.offset_and_name, [](auto const& a, auto const& b) {
 		return a.start_offset < b.start_offset;
@@ -230,7 +222,10 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 				auto const bytes_to_skip = std::min(bytes_left, std::size(buffer));
 				if(bytes_left == 0)
 				{
-					m_current_fd = find_fd(m_blobs.name_and_fd, m_current_blob->name);
+					auto const i = m_blobs.name_and_fd.find(m_current_blob->name);
+					assert(i != std::end(m_blobs.name_and_fd));
+					m_current_fd = i->fd.get();
+
 					m_current_state = message_decoder_state::read_blob;
 					printf("Reading blob %s\n", m_current_blob->name.c_str());
 					++m_current_blob;
@@ -256,7 +251,9 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 					{
 						printf("Reading blob %s\n", m_current_blob->name.c_str());
 						::lseek(m_current_fd, 0, SEEK_SET);
-						m_current_fd = find_fd(m_blobs.name_and_fd, m_current_blob->name);
+						auto const i = m_blobs.name_and_fd.find(m_current_blob->name);
+						assert(i != std::end(m_blobs.name_and_fd));
+						m_current_fd = i->fd.get();
 						++m_current_blob;
 
 						// If we return 0, west will think there is a blocking socket, and we may not be called
@@ -264,7 +261,6 @@ restore::message_decoder::process_request_content(std::span<char const> buffer, 
 						return process_request_content(buffer, bytes_to_read);
 					}
 
-					printf("Reading blob %s\n", m_current_blob->name.c_str());
 					write_full(m_current_fd, std::span{std::data(buffer), bytes_to_write});
 
 					return http_write_req_result{

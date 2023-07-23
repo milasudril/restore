@@ -5,6 +5,7 @@
 
 #include "./storage_file.hpp"
 #include "./task_runner.hpp"
+#include "./name_to_fd_map.hpp"
 
 namespace restore
 {
@@ -13,7 +14,10 @@ namespace restore
 	public:
 		explicit task_registry(char const* storage_file_name, task_factory create_task);
 
-		void create_task(std::string_view task_name, jopp::object const& params);
+		void create_task(std::string_view task_name,
+			jopp::object const& params,
+			jopp::object const& initial_state,
+			name_to_fd_map const& blobs);
 
 		[[nodiscard]] bool delete_task(std::string_view task_name);
 

@@ -59,7 +59,10 @@ restore::task_registry::task_registry(char const* storage_file_name, task_factor
 	}
 }
 
-void restore::task_registry::create_task(std::string_view task_name, jopp::object const& params)
+void restore::task_registry::create_task(std::string_view task_name,
+	jopp::object const& params,
+	jopp::object const&,
+	name_to_fd_map const&)
 {
 	validate_task_name(task_name);
 	auto const params_json = to_string(params);

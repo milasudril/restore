@@ -36,7 +36,10 @@ namespace restore
 		{ return m_archive.ls(); }
 
 		void insert(std::span<std::byte const> data, std::string_view name)
-		{	return Wad64::insert(m_archive, Wad64::FileCreationMode::AllowCreation(), data, name); }
+		{	Wad64::insert(m_archive, Wad64::FileCreationMode::AllowCreation(), data, name); }
+
+		void insert(int fd, std::string_view name)
+		{ Wad64::insert(m_archive, Wad64::FileCreationMode::AllowCreation(), fd, name); }
 
 		void remove(std::string_view item)
 		{ m_archive.remove(item); }

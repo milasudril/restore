@@ -14,27 +14,6 @@ namespace
 		if(std::ranges::any_of(task_name, [](char ch) {return ch == '/' || ch == '\\';}))
 		{ throw std::runtime_error{"Invalid task name"}; }
 	}
-
-	std::string get_param_file_name(std::string_view task_name)
-	{
-		std::string ret{task_prefix};
-		ret.append(task_name).append("/parameters.json");
-		return ret;
-	}
-
-	std::string get_init_file_name(std::string_view task_name)
-	{
-		std::string ret{task_prefix};
-		ret.append(task_name).append("/initial_state.dat");
-		return ret;
-	}
-
-	std::string get_state_file_name(std::string_view task_name)
-	{
-		std::string ret{task_prefix};
-		ret.append(task_name).append("/current_state.dat");
-		return ret;
-	}
 }
 
 restore::task_registry::task_registry(char const* storage_file_name, task_factory create_task):
@@ -42,6 +21,9 @@ restore::task_registry::task_registry(char const* storage_file_name, task_factor
 	m_storage_file{storage_file{storage_file_name}},
 	m_sf_dir{absolute(std::filesystem::path{storage_file_name}).parent_path()}
 {
+#if 0
+	// TODO:
+
 	auto const entries = collect_entries(m_storage_file, task_prefix, 16);
 	for(auto const item : entries)
 	{
@@ -57,47 +39,63 @@ restore::task_registry::task_registry(char const* storage_file_name, task_factor
 		ip.first->second.set_parameters(json::object_ref{params});
 		ip.first->second.set_state(-1);  // TODO: Load state from file
 	}
+#endif
 }
 
 void restore::task_registry::create_task(std::string_view task_name,
 	jopp::object const& params,
-	jopp::object const&,
+	jopp::object const& initial_state,
 	name_to_fd_map const& blobs)
 {
+	validate_task_name(task_name);
 	rewind_all(blobs);
-	std::ranges::for_each(blobs, [](auto const& item) {
-		struct stat statbuf{};
-		::fstat(item.fd.get(), &statbuf);
-		std::string json_path{};
-		for(auto const& path_component : item.json_path)
-		{ json_path.append(path_component).append("/"); }
+	std::ranges::for_each(blobs, [&storage_file = m_storage_file, task_name](auto const& item) {
+		if(item.json_path.empty())
+		{ throw std::runtime_error{"Data may not be stored at root level"}; }
 
-		printf("[%s] %s -> %d (Size: %zu bytes)\n",
-			json_path.c_str(),
-			item.name.c_str(),
-			static_cast<int>(item.fd.get()),statbuf.st_size);
+		auto const& prefix = item.json_path.front();
+		if(!(prefix == "parameters" || prefix == "initial_state"))
+		{
+			std::string err{"Bad path prefix `"};
+			err.append(prefix);
+			err.append("`");
+			throw std::runtime_error{err};
+		}
+
+		auto const path = std::string{task_prefix}
+			.append(task_name).append("/")
+			.append(prefix).append("/")
+			.append("blobs/")
+			.append(item.name);
+
+		storage_file.insert(item.fd.get(), path);
 	});
 	putchar('\n');
 
-	validate_task_name(task_name);
-	auto const params_json = to_string(params);
-	m_storage_file.insert(std::as_bytes(std::span{params_json}), get_param_file_name(task_name));
+	{
+		auto const params_json = to_string(params);
+		auto const path = std::string{task_prefix}.append(task_name).append("/parameters/fields.json");
+		m_storage_file.insert(std::as_bytes(std::span{params_json}), path);
+	}
 
-	// TODO: Fill with data from client
-	m_storage_file.insert(std::span<std::byte const>{}, get_init_file_name(task_name));
-
-	// TODO: This entry should be created when a snapshot or copy is requested
-	m_storage_file.insert(std::span<std::byte const>{}, get_state_file_name(task_name));
+	{
+		auto const params_json = to_string(initial_state);
+		auto const path = std::string{task_prefix}.append(task_name).append("/initial_state/fields.json");
+		m_storage_file.insert(std::as_bytes(std::span{params_json}), path);
+	}
 
 	auto const ip = m_tasks.emplace(task_name, m_create_task());
 	assert(ip.second);
 
+	rewind_all(blobs);
+	// TODO: pass blobs to state and parameters
+	ip.first->second.set_state(-1);
 	ip.first->second.set_parameters(json::object_ref{params});
-	ip.first->second.set_state(-1);  // TODO: It should be possible to upload initial state via rest;
 }
 
-bool restore::task_registry::delete_task(std::string_view task_name)
+bool restore::task_registry::delete_task(std::string_view)
 {
+#if 0
 	// TODO: remove type-cast in c++23
 	if(m_tasks.erase(std::string{task_name}) == 0)
 	{ return false; }
@@ -105,14 +103,14 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 	m_storage_file.remove(get_param_file_name(task_name));
 	m_storage_file.remove(get_state_file_name(task_name));
 	m_storage_file.remove(get_init_file_name(task_name));
-
-	return true;
+#endif
+	return false;
 }
 
-[[nodiscard]] bool restore::task_registry::clone_task(std::string_view src_name, std::string_view target_name)
+[[nodiscard]] bool restore::task_registry::clone_task(std::string_view, std::string_view target_name)
 {
 	validate_task_name(target_name);
-
+#if 0
 	auto const new_params = get_param_file_name(target_name);
 
 	insert(m_storage_file.archive(),
@@ -138,12 +136,16 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 	{ return false; }
 
 	m_tasks.emplace(target_name, src_item->second.task());
-
-	return true;
+#endif
+	return false;
 }
 
-Wad64::InputFile restore::task_registry::get_parameter_file(std::string_view task_name) const
-{ return m_storage_file.get_file(get_param_file_name(task_name)); }
+Wad64::InputFile restore::task_registry::get_parameter_file(std::string_view) const
+{
+	throw std::runtime_error{"Blah"};
+//	return m_storage_file.get_file(get_param_file_name(task_name));
+
+}
 
 jopp::object restore::get_entries_as_json(task_registry const& registry)
 {

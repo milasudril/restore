@@ -27,9 +27,6 @@ restore::task_registry::task_registry(char const* storage_file_name, task_factor
 	m_storage_file{storage_file{storage_file_name}},
 	m_sf_dir{absolute(std::filesystem::path{storage_file_name}).parent_path()}
 {
-#if 0
-	// TODO:
-
 	auto const entries = collect_entries(m_storage_file, task_prefix, 16);
 	for(auto const item : entries)
 	{
@@ -41,11 +38,13 @@ restore::task_registry::task_registry(char const* storage_file_name, task_factor
 		if(!ip.second)
 		{ continue; }
 
+#if 0
+		// FIXME:
 		auto const params = json::load_object(m_storage_file.get_file(get_param_file_name(task_name)));
 		ip.first->second.set_parameters(json::object_ref{params});
 		ip.first->second.set_state(-1);  // TODO: Load state from file
-	}
 #endif
+	}
 }
 
 void restore::task_registry::create_task(std::string_view task_name,
@@ -110,6 +109,7 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 {
 	validate_task_name(target_name);
 #if 0
+	// FIXME:
 	auto const new_params = get_param_file_name(target_name);
 
 	insert(m_storage_file.archive(),

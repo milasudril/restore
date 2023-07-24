@@ -93,18 +93,17 @@ void restore::task_registry::create_task(std::string_view task_name,
 	ip.first->second.set_parameters(json::object_ref{params});
 }
 
-bool restore::task_registry::delete_task(std::string_view)
+bool restore::task_registry::delete_task(std::string_view task_name)
 {
-#if 0
 	// TODO: remove type-cast in c++23
 	if(m_tasks.erase(std::string{task_name}) == 0)
 	{ return false; }
 
-	m_storage_file.remove(get_param_file_name(task_name));
-	m_storage_file.remove(get_state_file_name(task_name));
-	m_storage_file.remove(get_init_file_name(task_name));
-#endif
-	return false;
+	auto const files = collect_entries(m_storage_file, std::string{task_name}.append("/"), 16);
+	for(auto const& file : files)
+	{ m_storage_file.remove(file); }
+
+	return true;
 }
 
 [[nodiscard]] bool restore::task_registry::clone_task(std::string_view, std::string_view target_name)

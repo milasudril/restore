@@ -14,6 +14,12 @@ namespace
 		if(std::ranges::any_of(task_name, [](char ch) {return ch == '/' || ch == '\\';}))
 		{ throw std::runtime_error{"Invalid task name"}; }
 	}
+
+	std::string get_param_dir(std::string_view task_name)
+	{ return std::string{task_prefix}.append(task_name).append("/parameters/"); }
+
+	std::string get_init_state_dir(std::string_view task_name)
+	{ return std::string{task_prefix}.append(task_name).append("/initial_state/"); }
 }
 
 restore::task_registry::task_registry(char const* storage_file_name, task_factory create_task):
@@ -55,9 +61,7 @@ void restore::task_registry::create_task(std::string_view task_name,
 
 		auto const& prefix = item.json_path.front();
 		if(!(prefix == "parameters" || prefix == "initial_state"))
-		{
-			throw std::runtime_error{std::string{"Bad path prefix `"}.append(prefix).append("`")};
-		}
+		{ throw std::runtime_error{std::string{"Bad path prefix `"}.append(prefix).append("`")}; }
 
 		auto const path = std::string{task_prefix}
 			.append(task_name).append("/")
@@ -67,17 +71,16 @@ void restore::task_registry::create_task(std::string_view task_name,
 
 		storage_file.insert(item.fd.get(), path);
 	});
-	putchar('\n');
 
 	{
 		auto const params_json = to_string(params);
-		auto const path = std::string{task_prefix}.append(task_name).append("/parameters/fields.json");
+		auto const path = get_param_dir(task_name).append("fields.json");
 		m_storage_file.insert(std::as_bytes(std::span{params_json}), path);
 	}
 
 	{
 		auto const params_json = to_string(initial_state);
-		auto const path = std::string{task_prefix}.append(task_name).append("/initial_state/fields.json");
+		auto const path = get_init_state_dir(task_name).append("fields.json");
 		m_storage_file.insert(std::as_bytes(std::span{params_json}), path);
 	}
 

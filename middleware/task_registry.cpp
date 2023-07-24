@@ -56,10 +56,7 @@ void restore::task_registry::create_task(std::string_view task_name,
 		auto const& prefix = item.json_path.front();
 		if(!(prefix == "parameters" || prefix == "initial_state"))
 		{
-			std::string err{"Bad path prefix `"};
-			err.append(prefix);
-			err.append("`");
-			throw std::runtime_error{err};
+			throw std::runtime_error{std::string{"Bad path prefix `"}.append(prefix).append("`")};
 		}
 
 		auto const path = std::string{task_prefix}

@@ -15,11 +15,14 @@ namespace
 		{ throw std::runtime_error{"Invalid task name"}; }
 	}
 
+	std::string get_task_dir(std::string_view task_name)
+	{ return std::string{task_prefix}.append(task_name).append("/"); }
+
 	std::string get_param_dir(std::string_view task_name)
-	{ return std::string{task_prefix}.append(task_name).append("/parameters/"); }
+	{ return get_task_dir(task_name).append("/parameters/"); }
 
 	std::string get_init_state_dir(std::string_view task_name)
-	{ return std::string{task_prefix}.append(task_name).append("/initial_state/"); }
+	{ return get_task_dir(task_name).append("/initial_state/"); }
 }
 
 restore::task_registry::task_registry(char const* storage_file_name, task_factory create_task):
@@ -94,11 +97,13 @@ void restore::task_registry::create_task(std::string_view task_name,
 
 bool restore::task_registry::delete_task(std::string_view task_name)
 {
+	validate_task_name(task_name);
+
 	// TODO: remove type-cast in c++23
 	if(m_tasks.erase(std::string{task_name}) == 0)
 	{ return false; }
 
-	auto const files = collect_entries(m_storage_file, std::string{task_name}.append("/"), 16);
+	auto const files = collect_entries(m_storage_file, get_task_dir(task_name), 16);
 	for(auto const& file : files)
 	{ m_storage_file.remove(file); }
 

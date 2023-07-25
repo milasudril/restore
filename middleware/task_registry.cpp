@@ -19,10 +19,15 @@ namespace
 	{ return std::string{task_prefix}.append(task_name).append("/"); }
 
 	std::string get_param_dir(std::string_view task_name)
-	{ return get_task_dir(task_name).append("/parameters/"); }
+	{ return get_task_dir(task_name).append("parameters/"); }
 
 	std::string get_init_state_dir(std::string_view task_name)
-	{ return get_task_dir(task_name).append("/initial_state/"); }
+	{ return get_task_dir(task_name).append("initial_state/"); }
+
+	std::string map_filename(std::string_view src_name, std::string_view target_name)
+	{
+		return std::string{target_name}.append("/").append(src_name);
+	}
 }
 
 restore::task_registry::task_registry(char const* storage_file_name, task_factory create_task):
@@ -77,12 +82,14 @@ void restore::task_registry::create_task(std::string_view task_name,
 	{
 		auto const params_json = to_string(params);
 		auto const path = get_param_dir(task_name).append("fields.json");
+		printf("Task names: %s\n", path.c_str());
 		m_storage_file.insert(std::as_bytes(std::span{params_json}), path);
 	}
 
 	{
 		auto const params_json = to_string(initial_state);
 		auto const path = get_init_state_dir(task_name).append("fields.json");
+		printf("Initial state: %s\n", path.c_str());
 		m_storage_file.insert(std::as_bytes(std::span{params_json}), path);
 	}
 
@@ -110,37 +117,32 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 	return true;
 }
 
-[[nodiscard]] bool restore::task_registry::clone_task(std::string_view, std::string_view target_name)
+[[nodiscard]] bool restore::task_registry::clone_task(std::string_view source_name, std::string_view target_name)
 {
 	validate_task_name(target_name);
-#if 0
-	// FIXME:
-	auto const new_params = get_param_file_name(target_name);
-
-	insert(m_storage_file.archive(),
-		Wad64::FileCreationMode::AllowCreation(),
-		m_storage_file.archive(),
-		get_param_file_name(src_name),
-		get_param_file_name(target_name));
-
-	insert(m_storage_file.archive(),
-		Wad64::FileCreationMode::AllowCreation(),
-		m_storage_file.archive(),
-		get_state_file_name(src_name),
-		get_state_file_name(target_name));
-
-	insert(m_storage_file.archive(),
-		Wad64::FileCreationMode::AllowCreation(),
-		m_storage_file.archive(),
-		get_init_file_name(src_name),
-		get_init_file_name(target_name));
-
-	auto const src_item = m_tasks.find(src_name);
+	auto const src_item = m_tasks.find(source_name);
 	if(src_item == std::end(m_tasks))
 	{ return false; }
 
-	m_tasks.emplace(target_name, src_item->second.task());
-#endif
+	auto ip = m_tasks.emplace(target_name, src_item->second.task());
+	if(ip.second == false)
+	{ return false; }
+
+	auto const source_files = collect_entries(m_storage_file, get_task_dir(source_name), 16);
+	for(auto const& filename : source_files)
+	{
+		auto const output_file = map_filename(filename, target_name);
+
+		printf("%s -> %s\n", std::data(filename), output_file.c_str());
+		/*
+		insert(m_storage_file.archive(),
+			Wad64::FileCreationMode::AllowCreation(),
+			m_storage_file.archive(),
+			filename,
+			output_file);
+		*/
+	}
+
 	return false;
 }
 

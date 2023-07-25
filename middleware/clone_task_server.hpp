@@ -3,6 +3,7 @@
 
 #include "./http_request_result.hpp"
 #include "./task_registry.hpp"
+#include "./message_decoder.hpp"
 
 #include <west/http_message_header.hpp>
 #include <compare>
@@ -14,8 +15,7 @@ namespace restore
 	public:
 		explicit clone_task_server(task_registry& tasks, std::string&& source):
 			m_source{std::move(source)},
-			m_request_body{std::make_unique<jopp::container>()},
-			m_request_body_parser{*m_request_body},
+			m_msg_decoder{tasks.get_tempdir()},
 			m_resp_ptr{nullptr},
 			m_bytes_to_read{0},
 			m_tasks{tasks}
@@ -24,15 +24,16 @@ namespace restore
 		constexpr std::strong_ordering operator<=>(null_server const&) const noexcept
 		{ return std::strong_ordering::equal; }
 
-		auto finalize_state(west::http::field_map& fields)
+		auto finalize_state(west::http::field_map& resposne_fields)
 		{
 			try
 			{
-				auto obj = m_request_body->get_if<jopp::object>();
+				auto obj = m_msg_decoder.get_json()->get_if<jopp::object>();
 				if(obj == nullptr)
 				{ throw std::runtime_error{"Expected request to be an object"}; }
 
-				auto const& new_name = obj->get_field_as<jopp::string>("new_name");
+				auto const& fields = obj->get_field_as<jopp::object>("fields");
+				auto const& new_name = fields.get_field_as<jopp::string>("new_name");
 				if(!m_tasks.get().clone_task(m_source, new_name))
 				{
 					return west::http::finalize_state_result{
@@ -46,7 +47,7 @@ namespace restore
 				m_response = to_string(resp_obj);
 				m_resp_ptr = std::data(m_response);
 				m_bytes_to_read = std::size(m_response);
-				fields.append("Content-Length", std::to_string(m_bytes_to_read));
+				resposne_fields.append("Content-Length", std::to_string(m_bytes_to_read));
 
 				return west::http::finalize_state_result{};
 			}
@@ -72,30 +73,13 @@ namespace restore
 			};
 		}
 
-		auto process_request_content(std::span<char const> buffer, size_t)
-		{
-			auto const res = m_request_body_parser.parse(buffer);
-			auto const bytes_written = static_cast<size_t>(res.ptr - std::begin(buffer));
-
-			if(res.ec == jopp::parser_error_code::completed || res.ec == jopp::parser_error_code::more_data_needed)
-			{
-				return http_write_req_result{
-					.bytes_written = bytes_written,
-					.ec = http_req_processing_result{res.ec}
-				};
-			}
-
-			return http_write_req_result{
-				.bytes_written = bytes_written,
-				.ec = http_req_processing_result{res.ec}
-			};
-		}
+		auto process_request_content(std::span<char const> buffer, size_t bytes_to_read)
+		{ return m_msg_decoder.process_request_content(buffer, bytes_to_read); }
 
 	private:
 		std::string m_source;
 
-		std::unique_ptr<jopp::container> m_request_body;
-		jopp::parser m_request_body_parser;
+		message_decoder m_msg_decoder;
 
 		std::string m_response;
 		char const* m_resp_ptr;

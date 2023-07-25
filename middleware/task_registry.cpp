@@ -24,9 +24,13 @@ namespace
 	std::string get_init_state_dir(std::string_view task_name)
 	{ return get_task_dir(task_name).append("initial_state/"); }
 
-	std::string map_filename(std::string_view src_name, std::string_view target_name)
+	std::string map_filename(std::string_view src_path, size_t src_name_length, std::string_view target_name)
 	{
-		return std::string{target_name}.append("/").append(src_name);
+		auto const prefix_length = std::size(task_prefix) + src_name_length;
+		assert(prefix_length <= std::size(src_path));
+		auto const begin_ptr = std::begin(src_path) + prefix_length;
+		auto const end_ptr = std::end(src_path);
+		return std::string{task_prefix}.append(target_name).append(std::string_view{begin_ptr, end_ptr});
 	}
 }
 
@@ -131,7 +135,7 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 	auto const source_files = collect_entries(m_storage_file, get_task_dir(source_name), 16);
 	for(auto const& filename : source_files)
 	{
-		auto const output_file = map_filename(filename, target_name);
+		auto const output_file = map_filename(filename, std::size(source_name), target_name);
 
 		printf("%s -> %s\n", std::data(filename), output_file.c_str());
 		/*

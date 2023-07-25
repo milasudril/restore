@@ -136,18 +136,14 @@ bool restore::task_registry::delete_task(std::string_view task_name)
 	for(auto const& filename : source_files)
 	{
 		auto const output_file = map_filename(filename, std::size(source_name), target_name);
-
-		printf("%s -> %s\n", std::data(filename), output_file.c_str());
-		/*
 		insert(m_storage_file.archive(),
 			Wad64::FileCreationMode::AllowCreation(),
 			m_storage_file.archive(),
 			filename,
 			output_file);
-		*/
 	}
 
-	return false;
+	return true;
 }
 
 Wad64::InputFile restore::task_registry::get_parameter_file(std::string_view) const

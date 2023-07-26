@@ -62,10 +62,36 @@ function make_request_body(fields, blobs)
 	return append_blobs_to_string(JSON.stringify(message), blobs);
 }
 
-function split_text_and_data(array)
+function decode_message(array)
 {
 	let i = find(array, 0);
-	return {body: new TextDecoder().decode(array.slice(0, i)), attachment_data: array.slice(i, array.length)};
+	let json_part = JSON.parse(new TextDecoder().decode(array.slice(0, i)));
+	let blobs = {};
+	if(json_part.blobs && json_part.bolbs !== undefined && Object.keys(obj).length !== 0)
+	{
+		let blob_array = [];
+		for(key in json_part.blobs)
+		{ blob_array.push({name: key, info: json_part.blobs[key]}); }
+		blob_array.sort(function(a, b){
+			return a.info.start_offset - b.info.start_offset;
+		});
+
+		let current_object = blob_array[0];
+		let start_offset = i + current_object.info.start_offset;
+		for(let i = 1; i != blob_array.length; ++i)
+		{
+			let next_object = blob_array[i];
+			let end_offset = i + next_object.info.start_offset;
+			blobs[current_object.name] = {
+				data: array.slice(start_offset, end_offset),
+				json_path: current_object.info.json_path
+			};
+			current_object = next_object;
+			start_offset = end_offset;
+		}
+	}
+
+	return {fields: json_part.fields, blobs: blobs};
 }
 
 function send_request(url, method = "GET", fields, blobs = {})
@@ -77,8 +103,8 @@ function send_request(url, method = "GET", fields, blobs = {})
 	}).then(function(res) {
 		return {succeeded: res.ok, pending_message: res.arrayBuffer()};
 	}).then(async function(data){
-		let message = split_text_and_data(new Uint8Array(await data.pending_message));
-		return {succeeded: data.succeeded, message: JSON.parse(message.body)};
+		let message = decode_message(new Uint8Array(await data.pending_message));
+		return {succeeded: data.succeeded, message: message};
 	});
 }
 
